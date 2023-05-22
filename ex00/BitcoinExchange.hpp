@@ -44,13 +44,13 @@ class BitcoinExchange
 {
     private:
         dbType  db;
-        bool    file_state;
+        //bool    file_state;
         bool    isFileFormatValid(std::string const &fpStr);
         bool    isFileOpen(char const *fp, std::ifstream &ifs);
         bool    isFileEmpty(std::ifstream &ifs);
+        BitcoinExchange(void);
 
     public:
-        BitcoinExchange(void);
         BitcoinExchange(char const *fp);
         BitcoinExchange(BitcoinExchange const &obj);
         BitcoinExchange &operator=(BitcoinExchange const &obj);

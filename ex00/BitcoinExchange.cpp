@@ -19,7 +19,7 @@ BitcoinExchange::BitcoinExchange(char const *fp)
 {
     std::string     fpStr(fp);
     std::ifstream   dbInpFileStream;
-    char            bufStr[500];
+    std::string     lineStr;
 
     try
     {
@@ -37,8 +37,8 @@ BitcoinExchange::BitcoinExchange(char const *fp)
             {
                 if (dbInpFileStream.good())
                 {
-                    dbInpFileStream.getline(bufStr, 1000);
-                    COUT << bufStr << ENDL;
+                    std::getline(dbInpFileStream, lineStr);
+                    COUT << lineStr << ENDL;
                 }
             }
         }

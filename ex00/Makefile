@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/05/21 17:28:32 by cudoh            ###   ########.fr        #
+#    Updated: 2023/05/22 19:06:57 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ SRCS:= main.cpp  BitcoinExchange.cpp
 
 OBJS:= $(SRCS:.c=.o)
 MSG = 
-REP =
+REP = mexes
 
 NAME = btc
 
@@ -64,9 +64,9 @@ push:	clean
 	@git ls-files; git status
 	@git commit -m "$(MSG)"
 ifeq ($(REP), 42)
-#	@git rm -f --cached *.pdf *.md			#	2> /dev/null
 	@git push wolfsburg main
 	@echo $(COL_G)Pushed to repo: $(REP)$(COL_D)
+#	@git rm -f --cached *.pdf *.md			#	2> /dev/null
 else 
 	@git push mexes main
 	@echo $(COL_G)Pushed to repo: mexes$(COL_D)
