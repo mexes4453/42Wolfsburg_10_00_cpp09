@@ -16,7 +16,9 @@
 # include <iostream>
 # include <stdexcept>
 # include <fstream>
+# include <cstdlib>
 # include <sstream>
+# include <utility>
 # include <algorithm>
 
 # define COUT std::cout
@@ -40,6 +42,7 @@
     }\
 
 typedef std::map<std::string, float>    dbType;
+typedef std::pair<std::string, float>   pairType;
 class BitcoinExchange
 {
     private:

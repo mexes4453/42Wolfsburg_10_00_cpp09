@@ -19,7 +19,9 @@ BitcoinExchange::BitcoinExchange(char const *fp)
 {
     std::string     fpStr(fp);
     std::ifstream   dbInpFileStream;
-    std::string     lineStr;
+    std::string     dateStr;
+    std::string     rateStr;
+    float           rateFloat;
 
     try
     {
@@ -33,12 +35,17 @@ BitcoinExchange::BitcoinExchange(char const *fp)
         // is file empty
         if (!isFileEmpty(dbInpFileStream))
         {
+
+            std::getline(dbInpFileStream, dateStr);
             for (int x = 0; x < 10; x++)
             {
                 if (dbInpFileStream.good())
                 {
-                    std::getline(dbInpFileStream, lineStr);
-                    COUT << lineStr << ENDL;
+                    std::getline(dbInpFileStream, dateStr, ',');
+                    std::getline(dbInpFileStream, rateStr);
+                    rateFloat = strtof(rateStr.c_str(), NULL);
+                    db.insert(pairType(dateStr, rateFloat));
+                    COUT << dateStr << ENDL;
                 }
             }
         }
@@ -124,10 +131,17 @@ bool    BitcoinExchange::isFileEmpty(std::ifstream &ifs)
 std::ostream    &operator<<(std::ostream &o, BitcoinExchange &btc)
 {
     dbType db = btc.getDb();
+    dbType::iterator    it;
 
     if (db.size() > 0)
     {
+        it = db.begin();
         COUT << "exchange is ongoing" << ENDL;
+        while (it != db.end())
+        {
+            COUT << (*it).first << " | " << (*it).second << ENDL;
+            it++;
+        }
     }
     return (o);
 }
