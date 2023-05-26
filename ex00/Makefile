@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/05/22 19:06:57 by cudoh            ###   ########.fr        #
+#    Updated: 2023/05/26 23:39:50 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ NAME = btc
 
 CC = c++
 STD_CPP = c++98
-CFLAGS = -Werror -Wall -Wextra -g -std=$(STD_CPP)
+CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP)
 INCLUDES = -I./
 
 #=== COLORS ====
@@ -56,6 +56,12 @@ clean: fclean
 # recompile everything
 re: clean all
 
+#=================== DEBUG =============================
+debug: 
+	@$(eval CFLAGS:=$(CFLAGS) -g)
+	make
+	
+
 #=================== GIT ===============================
 #define comments
 push:	clean
@@ -75,4 +81,4 @@ endif
 
 #endef # comments
 
-.PHONY : all fclean clean re push
+.PHONY : all fclean clean re push debug

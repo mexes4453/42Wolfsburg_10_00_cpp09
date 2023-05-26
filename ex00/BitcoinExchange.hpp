@@ -18,6 +18,7 @@
 # include <fstream>
 # include <cstdlib>
 # include <sstream>
+#include <string>
 # include <utility>
 # include <algorithm>
 
@@ -34,6 +35,7 @@
 # define ERR_MSG_ToManyArgs     ("Error: Too many args.")
 # define ERR_MSG_InvalidFileFmt ("Error: Invalid file format.")
 # define ERR_MSG_FileOpenFailed ("Error: could not open file")
+# define ERR_MSG_InvalidFloat   ("Error: Invalid format or corrupt float found")
 # define SHOW_HEADER(MSG) COUT << ENDL << COL_YELLOW "== "#MSG" ==" COL_DEFAULT << ENDL; 
 # define EXCEPTION_HANDLER()            \
     catch (const std::exception &e)     \
@@ -41,6 +43,7 @@
         std::cerr << e.what() << '\n'; \
     }\
 
+# define DELIMITER_COMMA (',')
 typedef std::map<std::string, float>    dbType;
 typedef std::pair<std::string, float>   pairType;
 class BitcoinExchange
@@ -51,6 +54,7 @@ class BitcoinExchange
         bool    isFileFormatValid(std::string const &fpStr);
         bool    isFileOpen(char const *fp, std::ifstream &ifs);
         bool    isFileEmpty(std::ifstream &ifs);
+        bool    isFloatValid(std::string &valueStr);
         BitcoinExchange(void);
 
     public:

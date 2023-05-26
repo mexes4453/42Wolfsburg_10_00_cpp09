@@ -41,11 +41,14 @@ BitcoinExchange::BitcoinExchange(char const *fp)
             {
                 if (dbInpFileStream.good())
                 {
-                    std::getline(dbInpFileStream, dateStr, ',');
+                    std::getline(dbInpFileStream, dateStr, DELIMITER_COMMA);
                     std::getline(dbInpFileStream, rateStr);
-                    rateFloat = strtof(rateStr.c_str(), NULL);
-                    db.insert(pairType(dateStr, rateFloat));
-                    COUT << dateStr << ENDL;
+                    if (isFloatValid(rateStr))
+                    {
+                        rateFloat = strtof(rateStr.c_str(), NULL);
+                        db.insert(pairType(dateStr, rateFloat));
+                        COUT << dateStr << ENDL;
+                    }
                 }
             }
         }
@@ -128,6 +131,30 @@ bool    BitcoinExchange::isFileEmpty(std::ifstream &ifs)
     return (result);
 }
 
+
+bool    BitcoinExchange::isFloatValid(std::string &valueStr)
+{
+    bool                result = false;
+    std::stringstream   sStream( valueStr );
+    float               valueFloat = 0.0;
+
+    try
+    {
+        if (sStream >> valueFloat)
+        {
+            COUT << valueStr << " -> " << valueFloat << ENDL;
+            result = true;
+        }
+        else
+        {
+            result = false;
+            throw std::runtime_error(ERR_MSG_InvalidFloat);
+        }
+    }
+    EXCEPTION_HANDLER();
+    return (result);
+}
+
 std::ostream    &operator<<(std::ostream &o, BitcoinExchange &btc)
 {
     dbType db = btc.getDb();
@@ -136,7 +163,9 @@ std::ostream    &operator<<(std::ostream &o, BitcoinExchange &btc)
     if (db.size() > 0)
     {
         it = db.begin();
+#ifdef _DEBUG_
         COUT << "exchange is ongoing" << ENDL;
+#endif // DEBUG
         while (it != db.end())
         {
             COUT << (*it).first << " | " << (*it).second << ENDL;
