@@ -51,8 +51,9 @@
         std::cerr << e.what() << '\n'; \
     }\
 
-# define DELIMITER_COMMA (',')
-# define DELIMITER_HYPHEN ('-')
+# define DELIMITER_COMMA (",")
+# define DELIMITER_HYPHEN ("-")
+# define DELIMITER_PIPE ("|")
 # define CHARS_WHITESPACE ("\n\t\v\f\r ")
 # define CHARS_VALID_FLOAT ("-+.0123456789Ee")
 # define CHARS_DIGITS ("0123456789")

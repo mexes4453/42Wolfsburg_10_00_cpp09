@@ -18,8 +18,10 @@ BitcoinExchange::BitcoinExchange(char const *fp) : dbFlag(true)
 {
     std::string fpStr(fp);
     std::ifstream dbInpFileStream;
+    std::string lineStr = "";
     std::string dateStr;
     std::string rateStr;
+    std::string::size_type found = 0;
     float rateFloat = 0.0;
 
 
@@ -36,24 +38,37 @@ BitcoinExchange::BitcoinExchange(char const *fp) : dbFlag(true)
         if (!isFileEmpty(dbInpFileStream))
         {
 
-            std::getline(dbInpFileStream, dateStr);
-            for (int x = 0; x < 10; x++)
+            // std::getline(dbInpFileStream, dateStr);
+            std::getline(dbInpFileStream, lineStr);
+            for (int x = 0; x < 20; x++)
             {
                 if (dbInpFileStream.good())
                 {
-                    std::getline(dbInpFileStream, dateStr, DELIMITER_COMMA);
-                    if (!isDateValid(dateStr))
+                    std::getline(dbInpFileStream, lineStr);
+                    COUT << "-------------------------------------------" << ENDL;
+                    found = lineStr.find(DELIMITER_COMMA);
+                    if (found != std::string::npos)
                     {
-                        std::cerr << COL_RED "Error! bad input => " COL_DEFAULT
-                        << dateStr << ENDL; 
-                    }
-
-                    std::getline(dbInpFileStream, rateStr);
-                    if (isFloatValid(rateStr))
-                    {
-                        rateFloat = std::strtof(rateStr.c_str(), NULL);
-                        db.insert(pairType(dateStr, rateFloat));
-                        COUT << dateStr << ENDL;
+                        dateStr = lineStr.substr(0, found);
+                        rateStr = lineStr.substr(found + 1);
+#ifdef _DEBUG_
+                        COUT << "date string : " << dateStr << ENDL;
+                        COUT << "rate string : " << rateStr << ENDL;
+#endif
+                        if (!isDateValid(dateStr))
+                        {
+                            std::cerr << COL_RED "Error! bad input => " 
+                                      << dateStr << COL_DEFAULT << ENDL;
+                            continue;
+                        }
+                        if (isFloatValid(rateStr))
+                        {
+                            rateFloat = std::strtof(rateStr.c_str(), NULL);
+                            db.insert(pairType(dateStr, rateFloat));
+#ifdef _DEBUG_
+                            COUT << rateStr << ENDL;
+#endif
+                        }
                     }
                 }
                 else
@@ -85,7 +100,7 @@ bool BitcoinExchange::isDateValid(std::string &Str)
         t.tm_mon = m - 1;
         t.tm_mday = d;
         t.tm_isdst = -1;
-        if (t.tm_year <= 0 || t.tm_mon <= 0 || t.tm_mday <= 0)
+        if (t.tm_year < 0 || t.tm_mon < 0 || t.tm_mday < 0)
         {
             return (result);
 
@@ -93,10 +108,14 @@ bool BitcoinExchange::isDateValid(std::string &Str)
 
         when = mktime(&t);
         nt = localtime(&when);
+        COUT << asctime(nt) << ENDL;
         result = (nt->tm_year == t.tm_year &&
                   nt->tm_mon == t.tm_mon &&
                   nt->tm_mday == t.tm_mday);
 #ifdef _DEBUG_
+        COUT << nt->tm_year << " : " << t.tm_year << ENDL;
+        COUT << nt->tm_mon << " : " << t.tm_mon << ENDL;
+        COUT << nt->tm_mday << " : " << t.tm_mday << ENDL;
         COUT << y << ENDL;
         COUT << m << ENDL;
         COUT << d << ENDL;
