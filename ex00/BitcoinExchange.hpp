@@ -18,8 +18,10 @@
 # include <fstream>
 # include <cstdlib>
 # include <sstream>
-#include <string>
+# include <string>
+# include <cstring>
 # include <utility>
+# include <ctime>
 # include <algorithm>
 
 # define COUT std::cout
@@ -31,11 +33,17 @@
 # define COL_DEFAULT "\033[0m"
 
 # define FILE_FMT (".csv")
-# define ERR_MSG_NoInputFile    ("Error: No input file.")
-# define ERR_MSG_ToManyArgs     ("Error: Too many args.")
-# define ERR_MSG_InvalidFileFmt ("Error: Invalid file format.")
-# define ERR_MSG_FileOpenFailed ("Error: could not open file")
-# define ERR_MSG_InvalidFloat   ("Error: Invalid format or corrupt float found")
+# define FILE_DB ("data.csv")
+# define ERR_MSG_NoInputFile        COL_RED "Error: No input file." COL_DEFAULT
+# define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
+# define ERR_MSG_InvalidFileFmt     COL_RED "Error: Invalid file format." COL_DEFAULT
+# define ERR_MSG_FileOpenFailed     COL_RED "Error: could not open file" COL_DEFAULT
+# define ERR_MSG_InvalidFloat       COL_RED "Error: Invalid format or corrupt float found" COL_DEFAULT
+# define ERR_MSG_InvalidFmtSpace    COL_RED "Error: Invalid format - space found" COL_DEFAULT
+# define ERR_MSG_InvalidFmtBadChar  COL_RED "Error: Invalid format - invalid char found" COL_DEFAULT
+# define ERR_MSG_InvalidValueRange  COL_RED "Error: value is out of range" COL_DEFAULT
+# define ERR_MSG_BadInput           COL_RED "Error: bad input" COL_DEFAULT
+
 # define SHOW_HEADER(MSG) COUT << ENDL << COL_YELLOW "== "#MSG" ==" COL_DEFAULT << ENDL; 
 # define EXCEPTION_HANDLER()            \
     catch (const std::exception &e)     \
@@ -44,17 +52,27 @@
     }\
 
 # define DELIMITER_COMMA (',')
+# define DELIMITER_HYPHEN ('-')
+# define CHARS_WHITESPACE ("\n\t\v\f\r ")
+# define CHARS_VALID_FLOAT ("-+.0123456789Ee")
+# define CHARS_DIGITS ("0123456789")
+# define MAX_VALUE (1000)
+# define REGEX_PAT_DATE ("^\\d{4}-\\d{2}-\\{2}$")
 typedef std::map<std::string, float>    dbType;
 typedef std::pair<std::string, float>   pairType;
 class BitcoinExchange
 {
     private:
         dbType  db;
-        //bool    file_state;
+        bool    dbFlag;
         bool    isFileFormatValid(std::string const &fpStr);
         bool    isFileOpen(char const *fp, std::ifstream &ifs);
         bool    isFileEmpty(std::ifstream &ifs);
         bool    isFloatValid(std::string &valueStr);
+        bool    isDateValid(std::string &Str);
+        void    stripWhiteSpace(std::string &str);
+        bool    isSpaceInStr(std::string &str);
+
         BitcoinExchange(void);
 
     public:
@@ -63,7 +81,6 @@ class BitcoinExchange
         BitcoinExchange &operator=(BitcoinExchange const &obj);
         ~BitcoinExchange(void);
         dbType &getDb(void);
-
 };
 
 std::ostream    &operator<<(std::ostream &o, BitcoinExchange &btc);

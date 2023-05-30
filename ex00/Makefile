@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/05/26 23:39:50 by cudoh            ###   ########.fr        #
+#    Updated: 2023/05/30 00:14:17 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,8 @@ NAME = btc
 
 CC = c++
 STD_CPP = c++98
-CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP)
+DEBUG = 
+CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP) $(DEBUG)
 INCLUDES = -I./
 
 #=== COLORS ====
@@ -32,7 +33,7 @@ NAME : all
 all : $(NAME)
 $(NAME) : $(OBJS) 
 	@echo "\033[1;33mCompiling Executables: $(NAME) \033[0m"
-	$(CC) $^ $(CFLAGS) $(INCLUDES) -o $@
+	$(CC) $^ $(CFLAGS) $(INCLUDES) $(DEBUG) -o $@
 	@echo; echo "\033[1;32mCompilation Successful. \033[0m"
 	@echo; echo
 
@@ -41,7 +42,7 @@ $(NAME) : $(OBJS)
 %.o : %.c
 	@echo
 	@echo "\033[1;33mCompiling OBJ files \033[0m"
-	$(CC) -c $^ $(CFLAGS) $(INCLUDES) -o $@
+	$(CC) -c $^ $(CFLAGS) $(INCLUDES) $(DEBUG) -o $@
 	@echo
 
 
@@ -57,9 +58,15 @@ clean: fclean
 re: clean all
 
 #=================== DEBUG =============================
-debug: 
-	@$(eval CFLAGS:=$(CFLAGS) -g)
-	make
+debug: $(NAME)
+$(NAME) : $(OBJS) 
+	@echo "\033[1;33mCompiling Executables: $(NAME) \033[0m"
+	$(CC) $^ $(CFLAGS) $(INCLUDES) -g -D_DEBUG_=1 -o $@
+	@echo; echo "\033[1;32mCompilation Successful. \033[0m"
+	@echo; echo
+#	$(eval DEBUG += -g)
+#	$(eval )
+#	make
 	
 
 #=================== GIT ===============================
