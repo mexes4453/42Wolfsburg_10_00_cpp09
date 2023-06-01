@@ -382,6 +382,7 @@ void    BitcoinExchange::readInputFile(char const *fp)
                     std::getline(dbInpFileStream, lineStr);
 #ifdef _DEBUG_
                     COUT << "-------------------------------------------" << ENDL;
+                    COUT << "--> " << lineStr << ENDL;
 #endif
                     found = lineStr.find(DELIMITER_PIPE);
                     if (found != std::string::npos)
@@ -413,7 +414,7 @@ void    BitcoinExchange::readInputFile(char const *fp)
                     else
                     {
                         std::cerr << COL_RED "Error! bad input => " 
-                                      << dateStr << COL_DEFAULT << ENDL;
+                                      << lineStr << COL_DEFAULT << ENDL;
                         continue;
                     }
                 }
