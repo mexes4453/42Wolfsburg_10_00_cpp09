@@ -43,6 +43,9 @@
 # define ERR_MSG_InvalidFmtBadChar  COL_RED "Error: Invalid format - invalid char found" COL_DEFAULT
 # define ERR_MSG_InvalidValueRange  COL_RED "Error: value is out of range" COL_DEFAULT
 # define ERR_MSG_BadInput           COL_RED "Error: bad input" COL_DEFAULT
+# define ERR_MSG_NegativeDateComp   COL_RED "Error: Invalid date entry" COL_DEFAULT
+# define ERR_MSG_DateInFuture       COL_RED "Error: Date is in future" COL_DEFAULT
+
 
 # define SHOW_HEADER(MSG) COUT << ENDL << COL_YELLOW "== "#MSG" ==" COL_DEFAULT << ENDL; 
 # define EXCEPTION_HANDLER()            \
@@ -73,6 +76,9 @@ class BitcoinExchange
         bool    isDateValid(std::string &Str);
         void    stripWhiteSpace(std::string &str);
         bool    isSpaceInStr(std::string &str);
+        int     convertMonthStrToInt(std::string &str);
+        void    validateDateValue(std::stringstream &ss, \
+                int &nm, int &ny, int &nd);
 
         BitcoinExchange(void);
 
@@ -81,7 +87,9 @@ class BitcoinExchange
         BitcoinExchange(BitcoinExchange const &obj);
         BitcoinExchange &operator=(BitcoinExchange const &obj);
         ~BitcoinExchange(void);
-        dbType &getDb(void);
+        dbType  &getDb(void);
+        void    readDbFile(void);
+        void    readInputFile(char const *fp);
 };
 
 std::ostream    &operator<<(std::ostream &o, BitcoinExchange &btc);
