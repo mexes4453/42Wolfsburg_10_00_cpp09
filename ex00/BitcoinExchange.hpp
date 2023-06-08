@@ -32,16 +32,19 @@
 # define COL_MAGENTA "\033[0;35m"
 # define COL_DEFAULT "\033[0m"
 
-# define FILE_FMT (".csv")
+# define FILE_FMT_CSV (".csv")
+# define FILE_FMT_TXT (".txt")
 # define FILE_DB ("data.csv")
-# define ERR_MSG_NoInputFile        COL_RED "Error: No input file." COL_DEFAULT
+# define ERR_MSG_NoInputFile        COL_RED "Error: could not open file." COL_DEFAULT
 # define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
 # define ERR_MSG_InvalidFileFmt     COL_RED "Error: Invalid file format." COL_DEFAULT
+# define ERR_MSG_InvalidLineFmt     COL_RED "Error: Invalid line format." COL_DEFAULT
 # define ERR_MSG_FileOpenFailed     COL_RED "Error: could not open file" COL_DEFAULT
 # define ERR_MSG_InvalidFloat       COL_RED "Error: Invalid format or corrupt float found" COL_DEFAULT
 # define ERR_MSG_InvalidFmtSpace    COL_RED "Error: Invalid format - space found" COL_DEFAULT
 # define ERR_MSG_InvalidFmtBadChar  COL_RED "Error: Invalid format - invalid char found" COL_DEFAULT
-# define ERR_MSG_InvalidValueRange  COL_RED "Error: value is out of range" COL_DEFAULT
+# define ERR_MSG_ValueTooHigh       COL_RED "Error: too large a number" COL_DEFAULT
+# define ERR_MSG_ValueTooLow        COL_RED "Error: not a positive number." COL_DEFAULT
 # define ERR_MSG_BadInput           COL_RED "Error: bad input" COL_DEFAULT
 # define ERR_MSG_NegativeDateComp   COL_RED "Error: Invalid date entry" COL_DEFAULT
 # define ERR_MSG_DateInFuture       COL_RED "Error: Date is in future" COL_DEFAULT
@@ -79,7 +82,13 @@ class BitcoinExchange
         int     convertMonthStrToInt(std::string &str);
         void    validateDateValue(std::stringstream &ss, \
                 int &nm, int &ny, int &nd);
-
+        bool    isLineEmpty(std::string const &lineStr);
+        bool    parseLineStr(std::string const &lineStr,  \
+                             std::string const &delimter, \
+                             std::string &dateStr,  \
+                             float &rateFloat);
+        bool    openFile(std::string const &fpStr, std::ifstream &dbInpFileStream);
+        float   fetchRate(std::string const &dbKeyDate);
         BitcoinExchange(void);
 
     public:

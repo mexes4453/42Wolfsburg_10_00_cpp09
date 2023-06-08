@@ -17,7 +17,10 @@ BitcoinExchange::BitcoinExchange(void) {}
 BitcoinExchange::BitcoinExchange(char const *fp) : dbFlag(true)
 {
     readDbFile();
-    readInputFile(fp);
+    if (db.size() > 0)
+    {
+        readInputFile(fp);
+    }
 }
 
 bool BitcoinExchange::isDateValid(std::string &Str)
@@ -95,7 +98,7 @@ bool BitcoinExchange::isFileFormatValid(std::string const &fpStr)
 {
     bool result = false;
     std::size_t idx = 0;
-    std::string fmtStr(FILE_FMT);
+    std::string fmtStr(FILE_FMT_CSV);
 
     idx = fpStr.rfind(fmtStr);
     if (idx != std::string::npos)
@@ -205,9 +208,13 @@ bool BitcoinExchange::isFloatValid(std::string &valueStr)
 #ifdef _DEBUG_            
             COUT << valueStr << " -> " << valueFloat << ENDL;
 #endif
-            if (valueFloat < 0 || valueFloat > MAX_VALUE)
+            if (valueFloat < 0)
             {
-                throw std::runtime_error(ERR_MSG_InvalidValueRange);
+                throw std::runtime_error(ERR_MSG_ValueTooLow);
+            }
+            else if ( valueFloat > MAX_VALUE)
+            {
+                throw std::runtime_error(ERR_MSG_ValueTooHigh);
             }
 
             result = true;
@@ -256,98 +263,180 @@ void BitcoinExchange::validateDateValue(std::stringstream &ss,
 #endif
             switch (z)
             {
-            case 2:
-            {
-                nm = convertMonthStrToInt(tok);
-                break;
-            }
-            case 3:
-            {
-                nd = (strtof(tok.c_str(), NULL));
-                break;
-            }
-            case 5:
-            {
-                ny = (strtof(tok.c_str(), NULL));
-                break;
-            }
-            default:
-            {
-            }
+                case 2:
+                {
+                    nm = convertMonthStrToInt(tok);
+                    break;
+                }
+                case 3:
+                {
+                    nd = (strtof(tok.c_str(), NULL));
+                    break;
+                }
+                case 5:
+                {
+                    ny = (strtof(tok.c_str(), NULL));
+                    break;
+                }
+                default:
+                {
+                }
             }
         }
         x++;
     }
 }
-void    BitcoinExchange::readDbFile(void)
+
+bool    BitcoinExchange::openFile(std::string const &fpStr, std::ifstream &dbInpFileStream)
 {
-    std::string fpStr(FILE_DB);
-    std::ifstream dbInpFileStream;
-    std::string lineStr = "";
-    std::string dateStr;
-    std::string rateStr;
-    std::string::size_type found = 0;
-    float rateFloat = 0.0;
-
-
+    bool    result = false;
     try
     {
         if (!isFileFormatValid(fpStr)) // check that file format is valid
             throw std::runtime_error(ERR_MSG_InvalidFileFmt);
 
         // open file -
-        if (!isFileOpen(FILE_DB, dbInpFileStream))
+        if (!isFileOpen(fpStr.c_str(), dbInpFileStream))
             throw std::runtime_error(ERR_MSG_FileOpenFailed);
 
         // is file empty
-        if (!isFileEmpty(dbInpFileStream))
+        if (isFileEmpty(dbInpFileStream))
         {
+            result = false;
+            goto end;
+        }
+        result = true;
+#ifdef _DEBUG_ 
+        COUT << "openFile: " << "open file -> successful" << ENDL;
+#endif
+    }
+    EXCEPTION_HANDLER();
+end:
+    return (result);
+}
 
-            // std::getline(dbInpFileStream, dateStr);
-            std::getline(dbInpFileStream, lineStr);
-            for (int x = 0; x < 20; x++)
+
+bool    BitcoinExchange::isLineEmpty(std::string const &lineStr)
+{
+    std::string line = lineStr;
+
+    stripWhiteSpace(line);
+#ifdef _DEBUG_
+    COUT << "isLineEmpty : size -> " << line.size() << ENDL;
+#endif
+    if (line.size() == 0)
+    {
+        return (true);
+    }
+    return (false);
+}
+
+
+bool    BitcoinExchange::parseLineStr(std::string const &lineStr, 
+                                      std::string const &delimter, \
+                                      std::string &dateStr,  \
+                                      float &rateFloat)
+{
+    std::string::size_type  found = 0;
+    std::string             rateStr;
+    bool                    result = false;
+
+    try
+    {
+#ifdef _DEBUG_
+        COUT << "parseLineStr: lineStr -> " << lineStr << ENDL;
+#endif
+        if (isLineEmpty(lineStr))
+            goto end;
+
+        found = lineStr.find(delimter);
+#ifdef _DEBUG_
+        COUT << "parseLineStr: found -> " << found << ENDL;
+#endif
+        if (found != std::string::npos)
+        {
+            dateStr = lineStr.substr(0, found);
+            rateStr = lineStr.substr(found + 1);
+#ifdef _DEBUG_
+            COUT << "date string : " << dateStr << ENDL;
+            COUT << "rate string : " << rateStr << ENDL;
+#endif
+            if (!isDateValid(dateStr))
             {
-                if (dbInpFileStream.good())
-                {
-                    std::getline(dbInpFileStream, lineStr);
+                    std::cerr << COL_RED "Error! bad input => "
+                              << dateStr << COL_DEFAULT << ENDL;
+                    goto end;
+            }
+            if (isFloatValid(rateStr))
+            {
+                    rateFloat = std::strtof(rateStr.c_str(), NULL);
+                    result = true;
 #ifdef _DEBUG_
-                    COUT << "-------------------------------------------" << ENDL;
+                    COUT << rateStr << ENDL;
 #endif
-                    found = lineStr.find(DELIMITER_COMMA);
-                    if (found != std::string::npos)
-                    {
-                        dateStr = lineStr.substr(0, found);
-                        rateStr = lineStr.substr(found + 1);
-#ifdef _DEBUG_
-                        COUT << "date string : " << dateStr << ENDL;
-                        COUT << "rate string : " << rateStr << ENDL;
-#endif
-                        if (!isDateValid(dateStr))
-                        {
-                            std::cerr << COL_RED "Error! bad input => " 
-                                      << dateStr << COL_DEFAULT << ENDL;
-                            continue;
-                        }
-                        if (isFloatValid(rateStr))
-                        {
-                            rateFloat = std::strtof(rateStr.c_str(), NULL);
-                            db.insert(pairType(dateStr, rateFloat));
-#ifdef _DEBUG_
-                            COUT << rateStr << ENDL;
-#endif
-                        }
-                    }
-                }
-                else
-                    break;
             }
         }
-        // create the db map
+        else
+        {
+            std::cerr << COL_RED "Error! bad input => "
+                              << lineStr << COL_DEFAULT << ENDL;
+        }
+    }
+    EXCEPTION_HANDLER();
+end:
+    return (result);
+}
+
+
+float   BitcoinExchange::fetchRate(std::string const &dbKeyDate)
+{
+    dbType::iterator  it = db.begin();
+    float             rateFloat = 0.0;
+
+    it = db.lower_bound(dbKeyDate);
+    if (it != db.end())
+    {
+        rateFloat = it->second;
+    }
+#ifdef _DEBUG_
+    COUT << "fetchRate: rateFloat -> " << rateFloat << ENDL;
+#endif
+    return (rateFloat);
+}
+
+
+
+void    BitcoinExchange::readDbFile(void)
+{
+    std::string fpStr(FILE_DB);
+    std::ifstream dbInpFileStream;
+    std::string lineStr = "";
+    std::string dateStr;
+    float rateFloat = 0.0;
+    //int iter = 0;
+
+    try
+    {
+        if (!openFile(fpStr, dbInpFileStream))
+            goto end;
+        
+        while (dbInpFileStream.good())
+        {
+            std::getline(dbInpFileStream, lineStr);
+#ifdef _DEBUG_
+            COUT << "-------------------------------------------" << ENDL;
+#endif
+            if (parseLineStr(lineStr, DELIMITER_COMMA, dateStr, rateFloat))
+            {
+                db.insert(pairType(dateStr, rateFloat));
+            }
+        }
         dbInpFileStream.close();
     }
     EXCEPTION_HANDLER();
+end:
+    return ;
 }
-
 
 void    BitcoinExchange::readInputFile(char const *fp)
 {
@@ -355,77 +444,32 @@ void    BitcoinExchange::readInputFile(char const *fp)
     std::ifstream dbInpFileStream;
     std::string lineStr = "";
     std::string dateStr;
-    std::string rateStr;
-    std::string::size_type found = 0;
-    float rateFloat = 0.0;
-
+    float valFloat = 0.0;
+    //int iter = 0;
 
     try
     {
-        if (!isFileFormatValid(fpStr)) // check that file format is valid
-            throw std::runtime_error(ERR_MSG_InvalidFileFmt);
-
-        // open file -
-        if (!isFileOpen(fp, dbInpFileStream))
-            throw std::runtime_error(ERR_MSG_FileOpenFailed);
-
-        // is file empty
-        if (!isFileEmpty(dbInpFileStream))
+        if (!openFile(fpStr, dbInpFileStream))
+            goto end;
+        
+        while (dbInpFileStream.good())
         {
-
-            // std::getline(dbInpFileStream, dateStr);
             std::getline(dbInpFileStream, lineStr);
-            for (int x = 0; x < 20; x++)
+#ifdef _DEBUG_
+            COUT << "-------------------------------------------" << ENDL;
+#endif
+            if (parseLineStr(lineStr, DELIMITER_PIPE, dateStr, valFloat))
             {
-                if (dbInpFileStream.good())
-                {
-                    std::getline(dbInpFileStream, lineStr);
-#ifdef _DEBUG_
-                    COUT << "-------------------------------------------" << ENDL;
-                    COUT << "--> " << lineStr << ENDL;
-#endif
-                    found = lineStr.find(DELIMITER_PIPE);
-                    if (found != std::string::npos)
-                    {
-                        dateStr = lineStr.substr(0, found);
-                        rateStr = lineStr.substr(found + 1);
-#ifdef _DEBUG_
-                        COUT << "date string : " << dateStr << ENDL;
-                        COUT << "rate string : " << rateStr << ENDL;
-#endif
-                        if (!isDateValid(dateStr))
-                        {
-                            std::cerr << COL_RED "Error! bad input => " 
-                                      << dateStr << COL_DEFAULT << ENDL;
-                            continue;
-                        }
-                        if (isFloatValid(rateStr))
-                        {
-                            rateFloat = std::strtof(rateStr.c_str(), NULL);
-                            //db.insert(pairType(dateStr, rateFloat));
-                            // search database and perform exchange operation
-                            COUT << "input file : " << dateStr << " = " << rateStr
-                                << rateFloat << ENDL;
-#ifdef _DEBUG_
-                            COUT << rateStr << ENDL;
-#endif
-                        }
-                    }
-                    else
-                    {
-                        std::cerr << COL_RED "Error! bad input => " 
-                                      << lineStr << COL_DEFAULT << ENDL;
-                        continue;
-                    }
-                }
-                else
-                    break;
+                COUT << dateStr << " => "
+                     << valFloat << " = " 
+                     << fetchRate(dateStr) * valFloat << ENDL;
             }
         }
-        // create the db map
         dbInpFileStream.close();
     }
     EXCEPTION_HANDLER();
+end:
+    return ;
 }
 
 std::ostream &operator<<(std::ostream &o, BitcoinExchange &btc)

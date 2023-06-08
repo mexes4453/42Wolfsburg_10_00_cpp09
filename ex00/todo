@@ -1,0 +1,7 @@
+
+----
+TODO
+----
+* isHeader check
+* modify parseline function to remove number range check for db float.
+* 

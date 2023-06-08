@@ -25,7 +25,9 @@ int main(int argc, char *argv[])
         else if (argc == 2) // check if user provided only one argument
         {
             btc = new BitcoinExchange(argv[1]);
+#ifdef _DEBUG_
             COUT << *btc << ENDL;
+#endif
             delete btc;
         }
         else                // user provided more than one argument

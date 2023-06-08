@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/05/30 00:14:17 by cudoh            ###   ########.fr        #
+#    Updated: 2023/06/08 13:58:36 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,9 +21,14 @@ NAME = btc
 CC = c++
 STD_CPP = c++98
 DEBUG = 
-CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP) $(DEBUG)
+CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP)
 INCLUDES = -I./
 
+#=== DEBUG ====
+ifeq ($(DEBUG), 1)
+	CFLAGS := $(CFLAGS) -g -D_DEBUG_=1
+endif
+	
 #=== COLORS ====
 COL_Y = "\033[1;32m"
 COL_G = "\033[1;33m"
@@ -33,7 +38,7 @@ NAME : all
 all : $(NAME)
 $(NAME) : $(OBJS) 
 	@echo "\033[1;33mCompiling Executables: $(NAME) \033[0m"
-	$(CC) $^ $(CFLAGS) $(INCLUDES) $(DEBUG) -o $@
+	$(CC) $^ $(CFLAGS) $(INCLUDES) -o $@
 	@echo; echo "\033[1;32mCompilation Successful. \033[0m"
 	@echo; echo
 
@@ -42,7 +47,7 @@ $(NAME) : $(OBJS)
 %.o : %.c
 	@echo
 	@echo "\033[1;33mCompiling OBJ files \033[0m"
-	$(CC) -c $^ $(CFLAGS) $(INCLUDES) $(DEBUG) -o $@
+	$(CC) -c $^ $(CFLAGS) $(INCLUDES) -o $@
 	@echo
 
 
@@ -56,18 +61,6 @@ clean: fclean
 
 # recompile everything
 re: clean all
-
-#=================== DEBUG =============================
-debug: $(NAME)
-$(NAME) : $(OBJS) 
-	@echo "\033[1;33mCompiling Executables: $(NAME) \033[0m"
-	$(CC) $^ $(CFLAGS) $(INCLUDES) -g -D_DEBUG_=1 -o $@
-	@echo; echo "\033[1;32mCompilation Successful. \033[0m"
-	@echo; echo
-#	$(eval DEBUG += -g)
-#	$(eval )
-#	make
-	
 
 #=================== GIT ===============================
 #define comments
