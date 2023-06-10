@@ -197,35 +197,28 @@ bool BitcoinExchange::isFloatValid(std::string &valueStr, int unsigned &lineCnt)
     {
         if (isSpaceInStr(valueStr))
         {
-            if (isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader))
-            {
-                (throw std::runtime_error(ERR_MSG_InvalidFmtSpace));
-            }
-            else 
-            {
-
-            }
-
+            (!isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader)) ?
+            (throw std::runtime_error(ERR_MSG_InvalidFmtSpace)) :
             lineCnt;
         }
         else if (valueStr.find_first_not_of(CHARS_VALID_FLOAT) != std::string::npos)
         {
-            (isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader)) ? 
-            (throw std::runtime_error(ERR_MSG_InvalidFmtBadChar)):
-            lineCnt;
+            (lineCnt == 1) ?  lineCnt :
+            (throw std::runtime_error(ERR_MSG_InvalidFmtBadChar));
         }
         if (sStream >> valueFloat)
         {
 #ifdef _DEBUG_            
-            COUT << valueStr << " -> " << valueFloat << ENDL;
+            COUT << "isFloatValid: valueStr -> " << valueStr << ENDL; 
+            COUT << "isFloatValid: valueFloat -> " << valueFloat << ENDL;
 #endif
-            if (valueFloat < 0)
+            if ( !dbFlag && valueFloat < 0 )
             {
                 (lineCnt > 1) ? 
                 (throw std::runtime_error(ERR_MSG_ValueTooLow)) :
                 lineCnt;
             }
-            else if ( valueFloat > MAX_VALUE)
+            else if ( !dbFlag && valueFloat > MAX_VALUE)
             {
                 (lineCnt > 1) ?
                 (throw std::runtime_error(ERR_MSG_ValueTooHigh)):
@@ -235,7 +228,9 @@ bool BitcoinExchange::isFloatValid(std::string &valueStr, int unsigned &lineCnt)
         }
         else
         {
-            throw std::runtime_error(ERR_MSG_InvalidFloat);
+            (lineCnt > 1) ?
+            (throw std::runtime_error(ERR_MSG_InvalidFloat)) :
+            lineCnt;
         }
     }
     EXCEPTION_HANDLER();
@@ -346,12 +341,12 @@ bool    BitcoinExchange::isLineEmpty(std::string const &lineStr)
 }
 
 
-bool    BitcoinExchange::isHeaderValid(
+bool    BitcoinExchange::isHeaderInvalid(
                                         int unsigned &lineCnt,
                                         tFlag flg)
 {
     std::stringstream ss("");
-    bool              result = true;
+    bool              result = false;
 
     if (lineCnt == 1)
     {
@@ -361,14 +356,14 @@ bool    BitcoinExchange::isHeaderValid(
             {
                 case FLAG_OnOkProcDataAsHeader:
                 {
-                    result = false;
+                    result = true;
                     ss << COL_YELLOW "Info! missing header." COL_DEFAULT << ENDL; 
                     std::runtime_error(ss.str());
                     break ;
                 }
                 case FLAG_OnErrProcDataAsHeader:
                 {
-                    result = false;
+                    result = true;
                     ss << COL_RED "Error! Bad Input or missing header."
                        << COL_DEFAULT << ENDL;
                     std::runtime_error(ss.str());
@@ -376,7 +371,7 @@ bool    BitcoinExchange::isHeaderValid(
                 }
                 case FLAG_ProcParseErr:
                 {
-                    result = false;
+                    result = true;
                     ss << COL_RED "Info! Bad Input or wrong header format." 
                     << COL_DEFAULT << ENDL;
                     std::runtime_error(ss.str());
@@ -388,9 +383,8 @@ bool    BitcoinExchange::isHeaderValid(
             }
         }
         EXCEPTION_HANDLER();
-        return (result);
     }
-
+    return (result);
 }
 
 
@@ -422,42 +416,52 @@ tRetCode    BitcoinExchange::parseLineStr(std::string const &lineStr,
             if (dateStr.size() > 0 && valStr.size() > 0)
             {
 #ifdef _DEBUG_
-                COUT << "date string : " << dateStr << ENDL;
-                COUT << "rate string : " << rateStr << ENDL;
+                COUT << "parseLineStr : date string -> " << dateStr << ENDL;
+                COUT << "parseLineStr : rate string -> " << valStr << ENDL;
 #endif
                 result = RC_Success;
                 goto end;
             }
         }
         result = RC_BadInput;
-
     }
     EXCEPTION_HANDLER();
 end:
+#ifdef _DEBUG_
+    COUT << "parseLineStr : result -> " << result << ENDL;
+#endif
     return (result);
 }
 
-bool BitcoinExchange::processData( std::string &valStr, \
-                                   std::string &dateStr,  \
-                                   float &valFloat, int unsigned &lineCnt)
+bool BitcoinExchange::processData( std::string &dateStr, \
+                                   std::string &valStr,  \
+                                   float &valFloat, int unsigned &lineCnt
+                                   )
 {
     bool    result = false;
 
     if (!isDateValid(dateStr))
     {
-        std::cerr << COL_RED "Error! bad input => "
+        if (!isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader))
+        {
+            std::cerr << COL_RED "Error! bad input => "
                   << dateStr << COL_DEFAULT << ENDL;
+        }
         goto end;
     }
-    if (isFloatValid(valStr, lineCnt))
+
+    if (isFloatValid( valStr, lineCnt ))
     {
         valFloat = std::strtof(valStr.c_str(), NULL);
         result = true;
 #ifdef _DEBUG_
-        COUT << rateStr << ENDL;
+        COUT << valStr << ENDL;
 #endif
     }
 end:
+#ifdef _DEBUG_
+    COUT << "processData: result -> " << result << ENDL;
+#endif
     return (result);
 }
 
@@ -509,16 +513,17 @@ void    BitcoinExchange::readDbFile(void)
                 case RC_BadInput:
                 {
                     ++lineCnt;
-                    isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader);
-                    std::cerr << COL_RED "Error! bad input => "
+                    isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader);
+                    std::cerr << COL_RED "Error! bad input => " \
                               << lineStr << COL_DEFAULT << ENDL;
+                    break ;
                 }
                 default:
                 {
                     ++lineCnt;
-                    if (processData(dateStr, dateStr, rateFloat))
+                    if (processData(dateStr, valStr, rateFloat, lineCnt ))
                     {
-                        isHeaderValid(lineCnt, FLAG_OnOkProcDataAsHeader);
+                        isHeaderInvalid(lineCnt, FLAG_OnOkProcDataAsHeader);
                         db.insert(pairType(dateStr, rateFloat));
                     }
                 }
@@ -527,6 +532,7 @@ void    BitcoinExchange::readDbFile(void)
         dbInpFileStream.close();
     }
     EXCEPTION_HANDLER();
+    dbFlag = false;
 end:
     return ;
 }
@@ -540,6 +546,7 @@ void    BitcoinExchange::readInputFile(char const *fp)
     std::string     valStr;
     float           valFloat = 0.0;
     tRetCode        retVal = RC_LineEmpty;
+    static unsigned int lineCnt = 0;
 
     try
     {
@@ -552,22 +559,31 @@ void    BitcoinExchange::readInputFile(char const *fp)
 #ifdef _DEBUG_
             COUT << "readInputFile : --------------------------------" << ENDL;
 #endif
-            retVal = parseLineStr(lineStr, DELIMITER_COMMA, dateStr, valStr);
+            retVal = parseLineStr(lineStr, DELIMITER_PIPE, dateStr, valStr);
             switch  ( retVal ) 
             {
-                case RC_LineEmpty:
+                case RC_LineEmpty: break ;
                 case RC_BadInput:
                 {
+                    ++lineCnt;
+                    isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader);
                     std::cerr << COL_RED "Error! bad input => "
                               << lineStr << COL_DEFAULT << ENDL;
+                    break ;
                 }
                 default:
                 {
-                    if (processData( dateStr, dateStr, valFloat ))
+                    ++lineCnt;
+                    if (processData( dateStr, valStr, valFloat, lineCnt ))
                     {
+                        isHeaderInvalid(lineCnt, FLAG_OnOkProcDataAsHeader);
                         COUT << dateStr << " => "
                              << valFloat << " = " 
                              << fetchRate(dateStr) * valFloat << ENDL;
+#ifdef _DEBUG_
+                        COUT << "readInputFile: fetchRate -> " << fetchRate(dateStr)
+                            << ENDL;
+#endif
                     }
                 }
             }

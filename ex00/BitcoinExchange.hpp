@@ -101,7 +101,7 @@ class BitcoinExchange
         void        validateDateValue(std::stringstream &ss, 
                     int &nm, int &ny, int &nd);
         bool        isLineEmpty(std::string const &lineStr);
-        bool        isHeaderValid(
+        bool        isHeaderInvalid(
                                   int unsigned &lineCnt,
                                   tFlag flg);
         tRetCode    parseLineStr(std::string const &lineStr,  
@@ -109,8 +109,8 @@ class BitcoinExchange
                              std::string &dateStr,  
                              std::string &valStr);
         bool        processData( std::string &dateStr, 
-                             std::string &valStr,  
-                             float &valFloat, int unsigned &lineCnt);
+                             std::string &valStr, float &valFloat,  
+                             int unsigned &lineCnt );
         bool        openFile(std::string const &fpStr, std::ifstream &dbInpFileStream);
         float       fetchRate(std::string const &dbKeyDate);
         BitcoinExchange(void);
