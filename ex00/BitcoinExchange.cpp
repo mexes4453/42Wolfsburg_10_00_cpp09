@@ -186,7 +186,7 @@ bool BitcoinExchange::isSpaceInStr(std::string &str)
     return (result);
 }
 
-bool BitcoinExchange::isFloatValid(std::string &valueStr)
+bool BitcoinExchange::isFloatValid(std::string &valueStr, int unsigned &lineCnt)
 {
     bool result = false;
     std::stringstream sStream(valueStr);
@@ -197,11 +197,22 @@ bool BitcoinExchange::isFloatValid(std::string &valueStr)
     {
         if (isSpaceInStr(valueStr))
         {
-            throw std::runtime_error(ERR_MSG_InvalidFmtSpace);
+            if (isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader))
+            {
+                (throw std::runtime_error(ERR_MSG_InvalidFmtSpace));
+            }
+            else 
+            {
+
+            }
+
+            lineCnt;
         }
         else if (valueStr.find_first_not_of(CHARS_VALID_FLOAT) != std::string::npos)
         {
-            throw std::runtime_error(ERR_MSG_InvalidFmtBadChar);
+            (isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader)) ? 
+            (throw std::runtime_error(ERR_MSG_InvalidFmtBadChar)):
+            lineCnt;
         }
         if (sStream >> valueFloat)
         {
@@ -210,13 +221,16 @@ bool BitcoinExchange::isFloatValid(std::string &valueStr)
 #endif
             if (valueFloat < 0)
             {
-                throw std::runtime_error(ERR_MSG_ValueTooLow);
+                (lineCnt > 1) ? 
+                (throw std::runtime_error(ERR_MSG_ValueTooLow)) :
+                lineCnt;
             }
             else if ( valueFloat > MAX_VALUE)
             {
-                throw std::runtime_error(ERR_MSG_ValueTooHigh);
+                (lineCnt > 1) ?
+                (throw std::runtime_error(ERR_MSG_ValueTooHigh)):
+                lineCnt;
             }
-
             result = true;
         }
         else
@@ -332,14 +346,62 @@ bool    BitcoinExchange::isLineEmpty(std::string const &lineStr)
 }
 
 
-bool    BitcoinExchange::parseLineStr(std::string const &lineStr, 
-                                      std::string const &delimter, \
-                                      std::string &dateStr,  \
-                                      float &rateFloat)
+bool    BitcoinExchange::isHeaderValid(
+                                        int unsigned &lineCnt,
+                                        tFlag flg)
+{
+    std::stringstream ss("");
+    bool              result = true;
+
+    if (lineCnt == 1)
+    {
+        try 
+        {
+            switch (flg)
+            {
+                case FLAG_OnOkProcDataAsHeader:
+                {
+                    result = false;
+                    ss << COL_YELLOW "Info! missing header." COL_DEFAULT << ENDL; 
+                    std::runtime_error(ss.str());
+                    break ;
+                }
+                case FLAG_OnErrProcDataAsHeader:
+                {
+                    result = false;
+                    ss << COL_RED "Error! Bad Input or missing header."
+                       << COL_DEFAULT << ENDL;
+                    std::runtime_error(ss.str());
+                    break ;
+                }
+                case FLAG_ProcParseErr:
+                {
+                    result = false;
+                    ss << COL_RED "Info! Bad Input or wrong header format." 
+                    << COL_DEFAULT << ENDL;
+                    std::runtime_error(ss.str());
+                    break ;
+                }
+                default:
+                {
+                }
+            }
+        }
+        EXCEPTION_HANDLER();
+        return (result);
+    }
+
+}
+
+
+
+tRetCode    BitcoinExchange::parseLineStr(std::string const &lineStr, 
+                                      std::string const &delimter, 
+                                      std::string &dateStr,  
+                                      std::string &valStr)
 {
     std::string::size_type  found = 0;
-    std::string             rateStr;
-    bool                    result = false;
+    tRetCode                result = RC_LineEmpty;
 
     try
     {
@@ -356,37 +418,48 @@ bool    BitcoinExchange::parseLineStr(std::string const &lineStr,
         if (found != std::string::npos)
         {
             dateStr = lineStr.substr(0, found);
-            rateStr = lineStr.substr(found + 1);
-#ifdef _DEBUG_
-            COUT << "date string : " << dateStr << ENDL;
-            COUT << "rate string : " << rateStr << ENDL;
-#endif
-            if (!isDateValid(dateStr))
+            valStr = lineStr.substr(found + 1);
+            if (dateStr.size() > 0 && valStr.size() > 0)
             {
-                    std::cerr << COL_RED "Error! bad input => "
-                              << dateStr << COL_DEFAULT << ENDL;
-                    goto end;
-            }
-            if (isFloatValid(rateStr))
-            {
-                    rateFloat = std::strtof(rateStr.c_str(), NULL);
-                    result = true;
 #ifdef _DEBUG_
-                    COUT << rateStr << ENDL;
+                COUT << "date string : " << dateStr << ENDL;
+                COUT << "rate string : " << rateStr << ENDL;
 #endif
+                result = RC_Success;
+                goto end;
             }
         }
-        else
-        {
-            std::cerr << COL_RED "Error! bad input => "
-                              << lineStr << COL_DEFAULT << ENDL;
-        }
+        result = RC_BadInput;
+
     }
     EXCEPTION_HANDLER();
 end:
     return (result);
 }
 
+bool BitcoinExchange::processData( std::string &valStr, \
+                                   std::string &dateStr,  \
+                                   float &valFloat, int unsigned &lineCnt)
+{
+    bool    result = false;
+
+    if (!isDateValid(dateStr))
+    {
+        std::cerr << COL_RED "Error! bad input => "
+                  << dateStr << COL_DEFAULT << ENDL;
+        goto end;
+    }
+    if (isFloatValid(valStr, lineCnt))
+    {
+        valFloat = std::strtof(valStr.c_str(), NULL);
+        result = true;
+#ifdef _DEBUG_
+        COUT << rateStr << ENDL;
+#endif
+    }
+end:
+    return (result);
+}
 
 float   BitcoinExchange::fetchRate(std::string const &dbKeyDate)
 {
@@ -408,27 +481,47 @@ float   BitcoinExchange::fetchRate(std::string const &dbKeyDate)
 
 void    BitcoinExchange::readDbFile(void)
 {
-    std::string fpStr(FILE_DB);
-    std::ifstream dbInpFileStream;
-    std::string lineStr = "";
-    std::string dateStr;
-    float rateFloat = 0.0;
-    //int iter = 0;
+    std::string         fpStr(FILE_DB);
+    std::ifstream       dbInpFileStream;
+    std::string         lineStr = "";
+    std::string         dateStr;
+    std::string         valStr;
+    float               rateFloat = 0.0;
+    static unsigned int lineCnt = 0;
+    tRetCode            retVal = RC_LineEmpty;
 
     try
     {
         if (!openFile(fpStr, dbInpFileStream))
             goto end;
-        
+
         while (dbInpFileStream.good())
         {
             std::getline(dbInpFileStream, lineStr);
 #ifdef _DEBUG_
-            COUT << "-------------------------------------------" << ENDL;
+            COUT << lineCnt << ENDL;
+            COUT << "readDbFile : -----------------------------------" << ENDL;
 #endif
-            if (parseLineStr(lineStr, DELIMITER_COMMA, dateStr, rateFloat))
+            retVal = parseLineStr(lineStr, DELIMITER_COMMA, dateStr, valStr);
+            switch  ( retVal ) 
             {
-                db.insert(pairType(dateStr, rateFloat));
+                case RC_LineEmpty:
+                case RC_BadInput:
+                {
+                    ++lineCnt;
+                    isHeaderValid(lineCnt, FLAG_OnErrProcDataAsHeader);
+                    std::cerr << COL_RED "Error! bad input => "
+                              << lineStr << COL_DEFAULT << ENDL;
+                }
+                default:
+                {
+                    ++lineCnt;
+                    if (processData(dateStr, dateStr, rateFloat))
+                    {
+                        isHeaderValid(lineCnt, FLAG_OnOkProcDataAsHeader);
+                        db.insert(pairType(dateStr, rateFloat));
+                    }
+                }
             }
         }
         dbInpFileStream.close();
@@ -440,12 +533,13 @@ end:
 
 void    BitcoinExchange::readInputFile(char const *fp)
 {
-    std::string fpStr(fp);
-    std::ifstream dbInpFileStream;
-    std::string lineStr = "";
-    std::string dateStr;
-    float valFloat = 0.0;
-    //int iter = 0;
+    std::string     fpStr(fp);
+    std::ifstream   dbInpFileStream;
+    std::string     lineStr = "";
+    std::string     dateStr;
+    std::string     valStr;
+    float           valFloat = 0.0;
+    tRetCode        retVal = RC_LineEmpty;
 
     try
     {
@@ -456,13 +550,26 @@ void    BitcoinExchange::readInputFile(char const *fp)
         {
             std::getline(dbInpFileStream, lineStr);
 #ifdef _DEBUG_
-            COUT << "-------------------------------------------" << ENDL;
+            COUT << "readInputFile : --------------------------------" << ENDL;
 #endif
-            if (parseLineStr(lineStr, DELIMITER_PIPE, dateStr, valFloat))
+            retVal = parseLineStr(lineStr, DELIMITER_COMMA, dateStr, valStr);
+            switch  ( retVal ) 
             {
-                COUT << dateStr << " => "
-                     << valFloat << " = " 
-                     << fetchRate(dateStr) * valFloat << ENDL;
+                case RC_LineEmpty:
+                case RC_BadInput:
+                {
+                    std::cerr << COL_RED "Error! bad input => "
+                              << lineStr << COL_DEFAULT << ENDL;
+                }
+                default:
+                {
+                    if (processData( dateStr, dateStr, valFloat ))
+                    {
+                        COUT << dateStr << " => "
+                             << valFloat << " = " 
+                             << fetchRate(dateStr) * valFloat << ENDL;
+                    }
+                }
             }
         }
         dbInpFileStream.close();

@@ -35,6 +35,8 @@
 # define FILE_FMT_CSV (".csv")
 # define FILE_FMT_TXT (".txt")
 # define FILE_DB ("data.csv")
+# define FILE_DB_HDR_1 ("data")
+# define FILE_DB_HDR_2 ("exchange")
 # define ERR_MSG_NoInputFile        COL_RED "Error: could not open file." COL_DEFAULT
 # define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
 # define ERR_MSG_InvalidFileFmt     COL_RED "Error: Invalid file format." COL_DEFAULT
@@ -65,30 +67,52 @@
 # define CHARS_DIGITS ("0123456789")
 # define MAX_VALUE (1000)
 # define REGEX_PAT_DATE ("^\\d{4}-\\d{2}-\\{2}$")
+
+typedef enum eRetCode
+{
+    RC_LineEmpty = -127,
+    RC_BadInput,
+    RC_Success = 0
+}   tRetCode;
+
+typedef enum eFlag
+{
+    FLAG_OnOkProcDataAsHeader = 1,
+    FLAG_OnErrProcDataAsHeader,
+    FLAG_ProcParseErr,
+    FLAG_DbFile
+}   tFlag;
+
 typedef std::map<std::string, float>    dbType;
 typedef std::pair<std::string, float>   pairType;
 class BitcoinExchange
 {
     private:
-        dbType  db;
-        bool    dbFlag;
-        bool    isFileFormatValid(std::string const &fpStr);
-        bool    isFileOpen(char const *fp, std::ifstream &ifs);
-        bool    isFileEmpty(std::ifstream &ifs);
-        bool    isFloatValid(std::string &valueStr);
-        bool    isDateValid(std::string &Str);
-        void    stripWhiteSpace(std::string &str);
-        bool    isSpaceInStr(std::string &str);
-        int     convertMonthStrToInt(std::string &str);
-        void    validateDateValue(std::stringstream &ss, \
-                int &nm, int &ny, int &nd);
-        bool    isLineEmpty(std::string const &lineStr);
-        bool    parseLineStr(std::string const &lineStr,  \
-                             std::string const &delimter, \
-                             std::string &dateStr,  \
-                             float &rateFloat);
-        bool    openFile(std::string const &fpStr, std::ifstream &dbInpFileStream);
-        float   fetchRate(std::string const &dbKeyDate);
+        dbType      db;
+        bool        dbFlag;
+        bool        isFileFormatValid(std::string const &fpStr);
+        bool        isFileOpen(char const *fp, std::ifstream &ifs);
+        bool        isFileEmpty(std::ifstream &ifs);
+        bool        isFloatValid(std::string &valueStr, int unsigned &lineCnt);
+        bool        isDateValid(std::string &Str);
+        void        stripWhiteSpace(std::string &str);
+        bool        isSpaceInStr(std::string &str);
+        int         convertMonthStrToInt(std::string &str);
+        void        validateDateValue(std::stringstream &ss, 
+                    int &nm, int &ny, int &nd);
+        bool        isLineEmpty(std::string const &lineStr);
+        bool        isHeaderValid(
+                                  int unsigned &lineCnt,
+                                  tFlag flg);
+        tRetCode    parseLineStr(std::string const &lineStr,  
+                             std::string const &delimter, 
+                             std::string &dateStr,  
+                             std::string &valStr);
+        bool        processData( std::string &dateStr, 
+                             std::string &valStr,  
+                             float &valFloat, int unsigned &lineCnt);
+        bool        openFile(std::string const &fpStr, std::ifstream &dbInpFileStream);
+        float       fetchRate(std::string const &dbKeyDate);
         BitcoinExchange(void);
 
     public:
