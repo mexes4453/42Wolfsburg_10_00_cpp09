@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/06/08 13:58:36 by cudoh            ###   ########.fr        #
+#    Updated: 2023/06/11 13:57:55 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,18 +66,18 @@ re: clean all
 #define comments
 push:	clean
 	$(info Pushing to Git Repository)
-	@git add ../*
-	@git ls-files; git status
-	@git commit -m "$(MSG)"
 ifeq ($(REP), 42)
 	@git push wolfsburg main
 	@echo $(COL_G)Pushed to repo: $(REP)$(COL_D)
 #	@git rm -f --cached *.pdf *.md			#	2> /dev/null
 else 
+	@git add ../*
+	@git ls-files; git status
+	@git commit -m "$(MSG)"
 	@git push mexes main
 	@echo $(COL_G)Pushed to repo: mexes$(COL_D)
-endif
 	@echo $(COL_G)$(MSG)$(COL_D)
+endif
 
 #endef # comments
 
