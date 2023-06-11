@@ -174,7 +174,7 @@ void BitcoinExchange::stripWhiteSpace(std::string &str)
 #endif
 }
 
-bool BitcoinExchange::isSpaceInStr(std::string &str)
+bool BitcoinExchange::isSpaceInStr(std::string const &str)
 {
     std::string::size_type found = str.find_first_of(CHARS_WHITESPACE);
     bool result = false;
@@ -347,7 +347,10 @@ bool    BitcoinExchange::isHeaderInvalid(
 {
     std::stringstream ss("");
     bool              result = false;
-
+#ifdef _DEBUG_
+    COUT << "isHeaderInvalid : lineCnt -> " << lineCnt << ENDL;
+    COUT << "isHeaderInvalid : flg -> " << flg << ENDL;
+#endif
     if (lineCnt == 1)
     {
         try 
@@ -357,28 +360,33 @@ bool    BitcoinExchange::isHeaderInvalid(
                 case FLAG_OnOkProcDataAsHeader:
                 {
                     result = true;
-                    ss << COL_YELLOW "Info! missing header." COL_DEFAULT << ENDL; 
-                    std::runtime_error(ss.str());
+                    ss << COL_YELLOW "Info! missing header." COL_DEFAULT; 
+                    throw std::runtime_error(ss.str());
                     break ;
                 }
                 case FLAG_OnErrProcDataAsHeader:
                 {
                     result = true;
                     ss << COL_RED "Error! Bad Input or missing header."
-                       << COL_DEFAULT << ENDL;
-                    std::runtime_error(ss.str());
+                       << COL_DEFAULT;
+                    throw std::runtime_error(ss.str());
                     break ;
                 }
                 case FLAG_ProcParseErr:
                 {
                     result = true;
                     ss << COL_RED "Info! Bad Input or wrong header format." 
-                    << COL_DEFAULT << ENDL;
-                    std::runtime_error(ss.str());
+                    << COL_DEFAULT;
+                    throw std::runtime_error(ss.str());
+                    break ;
+                }
+                case FLAG_DoNothingOnErr:
+                {
+                    result = true;
                     break ;
                 }
                 default:
-                {
+                { 
                 }
             }
         }
@@ -442,7 +450,20 @@ bool BitcoinExchange::processData( std::string &dateStr, \
 
     if (!isDateValid(dateStr))
     {
-        if (!isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader))
+        if (lineCnt == 1 && isFloatValid( valStr, lineCnt ))
+        { 
+            isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader);
+        }
+        else if (lineCnt == 1 && !isFloatValid( valStr, lineCnt))
+        {  
+            if (isSpaceInStr( valStr ))
+                isHeaderInvalid(lineCnt, FLAG_ProcParseErr);
+            else
+            {
+                isHeaderInvalid(lineCnt, FLAG_DoNothingOnErr);
+            }
+        }
+        else
         {
             std::cerr << COL_RED "Error! bad input => "
                   << dateStr << COL_DEFAULT << ENDL;
@@ -455,7 +476,7 @@ bool BitcoinExchange::processData( std::string &dateStr, \
         valFloat = std::strtof(valStr.c_str(), NULL);
         result = true;
 #ifdef _DEBUG_
-        COUT << valStr << ENDL;
+        COUT << "processData: valStr -> " << valStr << ENDL;
 #endif
     }
 end:
@@ -505,17 +526,20 @@ void    BitcoinExchange::readDbFile(void)
 #ifdef _DEBUG_
             COUT << lineCnt << ENDL;
             COUT << "readDbFile : -----------------------------------" << ENDL;
+            COUT << "readDbFile: lineCnt -> " << lineCnt << ENDL;
 #endif
             retVal = parseLineStr(lineStr, DELIMITER_COMMA, dateStr, valStr);
             switch  ( retVal ) 
             {
-                case RC_LineEmpty:
+                case RC_LineEmpty: break ;
                 case RC_BadInput:
                 {
                     ++lineCnt;
-                    isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader);
-                    std::cerr << COL_RED "Error! bad input => " \
+                    if (!isHeaderInvalid(lineCnt, FLAG_ProcParseErr))
+                    {
+                        std::cerr << COL_RED "Error! bad input => " \
                               << lineStr << COL_DEFAULT << ENDL;
+                    }
                     break ;
                 }
                 default:
@@ -566,9 +590,11 @@ void    BitcoinExchange::readInputFile(char const *fp)
                 case RC_BadInput:
                 {
                     ++lineCnt;
-                    isHeaderInvalid(lineCnt, FLAG_OnErrProcDataAsHeader);
-                    std::cerr << COL_RED "Error! bad input => "
+                    if (!isHeaderInvalid(lineCnt, FLAG_ProcParseErr))
+                    {
+                        std::cerr << COL_RED "Error! bad input => " \
                               << lineStr << COL_DEFAULT << ENDL;
+                    }
                     break ;
                 }
                 default:

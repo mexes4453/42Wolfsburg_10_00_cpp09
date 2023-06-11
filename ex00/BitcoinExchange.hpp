@@ -35,6 +35,14 @@
 # define FILE_FMT_CSV (".csv")
 # define FILE_FMT_TXT (".txt")
 # define FILE_DB ("data.csv")
+//# define FILE_DB ("data_test_01.csv")
+//# define FILE_DB ("data_test_02.csv")
+//# define FILE_DB ("data_test_03.csv")
+//# define FILE_DB ("data_test_04.csv")
+//# define FILE_DB ("data_test_05.csv")
+//# define FILE_DB ("data_test_06.csv")
+//# define FILE_DB ("data_test_07_emp.csv")
+
 # define FILE_DB_HDR_1 ("data")
 # define FILE_DB_HDR_2 ("exchange")
 # define ERR_MSG_NoInputFile        COL_RED "Error: could not open file." COL_DEFAULT
@@ -80,7 +88,7 @@ typedef enum eFlag
     FLAG_OnOkProcDataAsHeader = 1,
     FLAG_OnErrProcDataAsHeader,
     FLAG_ProcParseErr,
-    FLAG_DbFile
+    FLAG_DoNothingOnErr
 }   tFlag;
 
 typedef std::map<std::string, float>    dbType;
@@ -96,7 +104,7 @@ class BitcoinExchange
         bool        isFloatValid(std::string &valueStr, int unsigned &lineCnt);
         bool        isDateValid(std::string &Str);
         void        stripWhiteSpace(std::string &str);
-        bool        isSpaceInStr(std::string &str);
+        bool        isSpaceInStr(std::string const &str);
         int         convertMonthStrToInt(std::string &str);
         void        validateDateValue(std::stringstream &ss, 
                     int &nm, int &ny, int &nd);
