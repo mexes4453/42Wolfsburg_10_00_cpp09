@@ -15,15 +15,44 @@
 Rpn::Rpn( void ){}
 
 
-Rpn::Rpn( std::string const &expStr ) : tmpExpStr(""), tokenStr(""), idx(0)
+Rpn::Rpn( std::string const &expStr ) : tmpExpStr(""), tokenStr(""), idx(0),
+a(0), b(0)
 {
     ss.str( expStr );
     tmpExpStr = ss.str();
 
-    while (getToken())
+    try
     {
+        while (getToken())
+        {
+            if (tokenStr.size() != 1) throw std::runtime_error("Error");
+            if (isdigit(tokenStr[0]))
+            {
+                stkOperands.push(tokenStr[0] - 0x30);
+            }
+            else // Sign found
+            {
+                if (stkOperands.size() >= 2)
+                {
+                    b = stkOperands.top();
+                    stkOperands.pop();
+                    a = stkOperands.top();
+                    stkOperands.pop();
+                    evaluate();
+                }
+                else
+                {
+                    throw std::runtime_error("Error");
+                }
+            }
+        }
+        if (stkOperands.size() != 1)
+        {
+            throw std::runtime_error("Error");
+        }
+        COUT << stkOperands.top() << ENDL;
     }
-
+    EXCEPTION_HANDLER();
 }
 
 
@@ -38,10 +67,13 @@ bool Rpn::getToken(void)
         goto end;
     tokenStr.clear();
 
+    // removing leading whitespaces
     idx = tmpExpStr.find_first_not_of(CHARS_WHITESPACE);
     if (idx != std::string::npos)
     {
         tmpExpStr = tmpExpStr.substr(idx);
+
+        // removing trailing whitespaces
         idx = tmpExpStr.find_first_of(CHARS_WHITESPACE);
         if (idx != std::string::npos)
         {
@@ -65,4 +97,36 @@ bool Rpn::getToken(void)
 #endif
 end:
     return (result);
+}
+
+void    Rpn::evaluate(void)
+{
+    switch (tokenStr[0])
+    {
+        case '*':
+        {
+            stkOperands.push(a * b);
+            break ;
+        }
+        case '-':
+        {
+            stkOperands.push(a - b);
+            break ;
+        }
+        case '/':
+        {
+            stkOperands.push(a / b);
+            break ;
+        }
+        case '+':
+        {
+            stkOperands.push(a + b);
+            break ;
+        }
+        default:
+        {
+            throw std::runtime_error("Error: unknown operand");
+            break;
+        }
+    }
 }

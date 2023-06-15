@@ -36,10 +36,9 @@
         std::cerr << e.what() << '\n'; \
     }\
 
-# define ERR_MSG_NoExpression        COL_RED "Error: provide RPN expression." COL_DEFAULT
+# define ERR_MSG_NoExpression        COL_RED "Error: no RPN expression." COL_DEFAULT
 # define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
 # define CHARS_WHITESPACE ("\n\t\v\f\r ")
-# define CHARS_OPERATORS ("+-*/")
 
 class Rpn
 {
@@ -48,16 +47,17 @@ class Rpn
         std::stringstream   ss;
         std::string         tmpExpStr;
         std::string         tokenStr;
-        std::string::size_type  idx; 
+        std::string::size_type  idx;
+        int a;
+        int b;
 
+        Rpn( void );
+        Rpn &operator=( Rpn const &rhs );
         bool        getToken(void);
-        //          isOperator
-        //          isOperandValid
+        void        evaluate(void);
 
     public:
-        Rpn( void );
         Rpn( std::string const &expStr );
-        Rpn &operator=( Rpn const &rhs );
         ~Rpn( void );
 
 };
