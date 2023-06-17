@@ -46,11 +46,7 @@ a(0), b(0)
                 }
             }
         }
-        if (stkOperands.size() != 1)
-        {
-            throw std::runtime_error("Error");
-        }
-        COUT << stkOperands.top() << ENDL;
+        showResult();
     }
     EXCEPTION_HANDLER();
 }
@@ -99,34 +95,44 @@ end:
     return (result);
 }
 
-void    Rpn::evaluate(void)
+void Rpn::evaluate(void)
 {
     switch (tokenStr[0])
     {
-        case '*':
-        {
-            stkOperands.push(a * b);
-            break ;
-        }
-        case '-':
-        {
-            stkOperands.push(a - b);
-            break ;
-        }
-        case '/':
-        {
-            stkOperands.push(a / b);
-            break ;
-        }
-        case '+':
-        {
-            stkOperands.push(a + b);
-            break ;
-        }
-        default:
-        {
-            throw std::runtime_error("Error: unknown operand");
-            break;
-        }
+    case '*':
+    {
+        stkOperands.push(a * b);
+        break;
     }
+    case '-':
+    {
+        stkOperands.push(a - b);
+        break;
+    }
+    case '/':
+    {
+        stkOperands.push(a / b);
+        break;
+    }
+    case '+':
+    {
+        stkOperands.push(a + b);
+        break;
+    }
+    default:
+    {
+        throw std::runtime_error("Error: unknown operand");
+        break;
+    }
+    }
+}
+
+
+void Rpn::showResult(void)
+{
+    if (stkOperands.size() != 1)
+    {
+        throw std::runtime_error("Error");
+    }
+    COUT << stkOperands.top() << ENDL;
 }

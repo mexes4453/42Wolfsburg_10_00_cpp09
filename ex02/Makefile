@@ -6,17 +6,17 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/06/11 21:45:42 by cudoh            ###   ########.fr        #
+#    Updated: 2023/06/17 10:59:16 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-SRCS:= main.cpp  RPN.cpp
+SRCS:= main.cpp  PmergeMe.cpp
 
 OBJS:= $(SRCS:.c=.o)
 MSG = 
 REP = mexes
 
-NAME = RPN
+NAME = PmergeMe
 
 CC = c++
 STD_CPP = c++98
@@ -81,4 +81,17 @@ endif
 
 #endef # comments
 
-.PHONY : all fclean clean re push debug
+
+# ========== TEST ====================
+test:
+	@echo $(COL_G)=== TEST === 1 = NO ARGS$(COL_D)
+	@./$(NAME)
+	@echo
+	@echo $(COL_G)=== TEST === 2 = MORE THAN 1 ARG INPUT $(COL_D)
+	@./$(NAME) "5 1 2 6 8" 56
+	@echo
+	@echo $(COL_G)=== TEST === 3 = $(COL_D)
+	@./$(NAME) "5 1 2 6 8"
+	@echo
+
+.PHONY : all fclean clean re push test

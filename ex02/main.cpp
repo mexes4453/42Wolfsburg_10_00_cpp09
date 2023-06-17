@@ -10,11 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "RPN.hpp"
+#include "PmergeMe.hpp"
 
 int main(int argc, char *argv[])
 {
-    Rpn *exp;
+    PmergeMe *merger;
 
     try
     {
@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2) // check if user provided only one argument
         {
-            exp = new Rpn(argv[1]);
-            delete exp;
+            merger = new PmergeMe(argv[1]);
+            delete merger;
         }
         else                // user provided more than one argument
         {

@@ -36,7 +36,7 @@
         std::cerr << e.what() << '\n'; \
     }\
 
-# define ERR_MSG_NoExpression        COL_RED "Error: no RPN expression." COL_DEFAULT
+# define ERR_MSG_NoExpression       COL_RED "Error: no RPN expression." COL_DEFAULT
 # define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
 # define CHARS_WHITESPACE ("\n\t\v\f\r ")
 
@@ -53,9 +53,9 @@ class Rpn
 
         Rpn( void );
         Rpn &operator=( Rpn const &rhs );
-        bool        getToken(void);
-        void        evaluate(void);
-
+        bool    getToken(void);
+        void    evaluate(void);
+        void    showResult(void);
     public:
         Rpn( std::string const &expStr );
         ~Rpn( void );
