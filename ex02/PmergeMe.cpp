@@ -9,10 +9,26 @@ PmergeMe::PmergeMe(char const *fp)
 #ifdef _DEBUG_
     COUT << "PmergeMe_Constructor: " << fp << ENDL;
     seqVec.push_back(2);
+    seqVec.push_back(3);
+    seqVec.push_back(4);
+    seqVec.push_back(5);
+    seqVec.push_back(6);
+    seqVec.push_back(7);
+    seqVec.push_back(8);
+    seqVec.push_back(9);
+    seqVec.push_back(1);
+    seqVec.push_back(0);
+    seqVec.push_back(9);
+    seqVec.push_back(8);
+    seqVec.push_back(5);
     seqList.push_back(8);
+    seqList.push_back(5);
+    seqList.push_back(9);
+    seqList.push_back(2);
     showTime(enSeqList);
     showTime(enSeqVector);
-    showSequence(enSeqList, "after");
+    showSequence(enSeqList, STATE_AFTER);
+    showSequence(enSeqVector, STATE_BEFORE);
 #endif
 
 }
@@ -22,37 +38,28 @@ PmergeMe::~PmergeMe(void){}
 
 void    PmergeMe::showSequence(t_eSeq seqType, std::string const &seqStateStr)
 {
-    COUT << seqStateStr << ": ";
+    COUT << seqStateStr;
     switch (seqType)
     {
         case enSeqList:
         {
-            it_L = seqList.begin();
-            if (seqList.size() > SEQ_DISPLAY_RANGE)
-            {
-               for (int unsigned x=0; x < SEQ_DISPLAY_RANGE; x++)
-               {
-                    COUT << *it_L << " ";
-                    ++it_L;
-               }
-            }
-            else
-            {
-                while (it_L != seqList.end())
-                {
-                    COUT << *it_L << " ";
-                    ++it_L;
-                }
-            }
-            COUT << ENDL;
+            SHOW_SEQUENCE(seqList,it_L);
             break ;
         }
         case enSeqVector:
         {
+            SHOW_SEQUENCE(seqVec,it_V);
+            break ;
+        }
+        default:
+        {
+            // do nothing
             break ;
         }
     }
+    COUT << ENDL;
 }
+
 
 clock_t    PmergeMe::computeTime(t_eSeq seqType)
 {
@@ -82,4 +89,18 @@ void    PmergeMe::showTime(t_eSeq seqType)
             break ;
         }
     }
+}
+
+
+
+void    insertionSortList(tSeqList dataList)
+{
+    unsigned int idx = 1;
+    tSeqList::iterator it = dataList.begin();
+
+
+
+
+    
+    
 }

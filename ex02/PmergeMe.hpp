@@ -23,13 +23,14 @@
 
 # define ERR_MSG_NoExpression       COL_RED "Error: no sequence found." COL_DEFAULT
 # define ERR_MSG_ToManyArgs         COL_RED "Error: Too many args." COL_DEFAULT
+# define STATE_BEFORE ("before: ")
+# define STATE_AFTER ("after: ")
 # define MSG_TIME_1 ("Time to process a range of ")
 # define MSG_TIME_2 (" elements with std::[..] : ")
 # define MSG_TIME_3 (" us")
 # define CHARS_WHITESPACE ("\n\t\v\f\r ")
 # define INSERT_SORT_THRESHOLD (5)
 # define SEQ_DISPLAY_RANGE (10)
-
 
 
 /* Function Macros */
@@ -39,10 +40,35 @@
         std::cerr << e.what() << '\n'; \
     }\
 
+
 #define SHOW_TIME(size,time) \
     {\
         COUT << MSG_TIME_1 << size << MSG_TIME_2 << time << MSG_TIME_3 << ENDL; \
     }\
+
+
+#define SHOW_SEQUENCE(seq,iter) \
+    {\
+        iter = seq.begin(); \
+        if (seq.size() > SEQ_DISPLAY_RANGE) \
+        {\
+            for (int unsigned x=0; x < SEQ_DISPLAY_RANGE; x++) \
+            {\
+                COUT << *iter << " "; \
+                ++iter; \
+            }\
+            COUT << "[...]"; \
+        }\
+        else \
+        {\
+            while (iter != seq.end()) \
+            {\
+                COUT << *iter << " "; \
+                ++iter; \
+            }\
+        }\
+    }\
+
 
 typedef enum    eSeq
 {
@@ -66,14 +92,20 @@ class  PmergeMe
         std::vector<int unsigned>::iterator it_V;
         
         PmergeMe(void);
+        PmergeMe(PmergeMe const &obj);
+        PmergeMe &operator=(PmergeMe const &obj);
+
         void    showSequence(t_eSeq seqType, std::string const &seqStateStr);
         void    showTime(t_eSeq seqType);
         clock_t computeTime(t_eSeq seqType);
+        void    insertionSortList(tSeqList dataList);
+        void    insertionSortVector(tSeqVec dataList);
+        void    mergeInsertSortList(tSeqList dataList);
+        void    mergeInsertSortVector(tSeqVec dataList);
 
     public:
         PmergeMe(char const *fp);
-        PmergeMe(PmergeMe const &obj);
-        PmergeMe &operator=(PmergeMe const &obj);
         ~PmergeMe(void);
 };
+
 #endif //PMERGEME_HPP
