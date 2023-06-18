@@ -95,13 +95,13 @@ class  PmergeMe
         PmergeMe(PmergeMe const &obj);
         PmergeMe &operator=(PmergeMe const &obj);
 
-        void    showSequence(t_eSeq seqType, std::string const &seqStateStr);
-        void    showTime(t_eSeq seqType);
+        void showSequence(t_eSeq seqType, std::string const &seqStateStr);
+        void showTime(t_eSeq seqType);
         clock_t computeTime(t_eSeq seqType);
-        void    insertionSortList(tSeqList dataList);
-        void    insertionSortVector(tSeqVec dataList);
-        void    mergeInsertSortList(tSeqList dataList);
-        void    mergeInsertSortVector(tSeqVec dataList);
+        void insertionSortList(tSeqList &dataList);
+        void insertionSortVector(tSeqVec &dataVector);
+        void mergeInsertSortList(tSeqList dataList);
+        void mergeInsertSortVector(tSeqVec dataList);
 
     public:
         PmergeMe(char const *fp);

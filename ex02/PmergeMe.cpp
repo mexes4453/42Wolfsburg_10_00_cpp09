@@ -1,7 +1,6 @@
 
 #include "PmergeMe.hpp"
 
-
 PmergeMe::PmergeMe(){}
 
 PmergeMe::PmergeMe(char const *fp)
@@ -12,7 +11,6 @@ PmergeMe::PmergeMe(char const *fp)
     seqVec.push_back(3);
     seqVec.push_back(4);
     seqVec.push_back(5);
-    seqVec.push_back(6);
     seqVec.push_back(7);
     seqVec.push_back(8);
     seqVec.push_back(9);
@@ -23,12 +21,15 @@ PmergeMe::PmergeMe(char const *fp)
     seqVec.push_back(5);
     seqList.push_back(8);
     seqList.push_back(5);
+    seqList.push_back(3);
     seqList.push_back(9);
     seqList.push_back(2);
     showTime(enSeqList);
     showTime(enSeqVector);
-    showSequence(enSeqList, STATE_AFTER);
+    showSequence(enSeqList, STATE_BEFORE);
     showSequence(enSeqVector, STATE_BEFORE);
+    insertionSortList(seqList);
+    showSequence(enSeqList, STATE_AFTER);
 #endif
 
 }
@@ -93,14 +94,58 @@ void    PmergeMe::showTime(t_eSeq seqType)
 
 
 
-void    insertionSortList(tSeqList dataList)
+void    PmergeMe::insertionSortList(tSeqList &dataList)
 {
-    unsigned int idx = 1;
-    tSeqList::iterator it = dataList.begin();
-
-
-
-
+    int unsigned        idx = 1;
+    tSeqList::iterator  it_L = dataList.begin();
+    tSeqList::iterator  it_R = dataList.begin();
     
+    ++it_R;
+    while (it_R != dataList.end())
+    {
+        it_L = dataList.begin();
+        while ((it_L != dataList.end()) && (*it_R > *it_L))
+        {
+            ++it_L;
+        }
+#ifdef _DEBUG_
+        COUT << "Before splice: " << *it_R << ENDL;
+#endif
+        dataList.splice(it_L, dataList, it_R);
+#ifdef _DEBUG_
+        COUT << "After splice: " << *it_R << ENDL;
+#endif
+        ++idx;
+        it_R = dataList.begin();
+        std::advance(it_R, idx);
+    }
+}
+
+void    PmergeMe::insertionSortVector(tSeqVec &dataVector)
+{
+    int unsigned        idx = 1;
+    tSeqVec::iterator  it_L = dataVector.begin();
+    tSeqVec::iterator  it_R = dataVector.begin();
     
+    ++it_R;
+    while (it_R != dataVector.end())
+    {
+        it_L = dataVector.begin();
+        while ((it_L != dataVector.end()) && (*it_R > *it_L))
+        {
+            ++it_L;
+        }
+#ifdef _DEBUG_
+        COUT << "Before splice: " << *it_R << ENDL;
+#endif
+        dataVector.insert(it_L, *it_R);
+        
+#ifdef _DEBUG_
+        COUT << "After splice: " << *it_R << ENDL;
+#endif
+        ++idx;
+        it_R = dataVector.begin();
+        std::advance(it_R, idx);
+    }
+
 }
