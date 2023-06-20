@@ -29,8 +29,8 @@
 # define MSG_TIME_2 (" elements with std::[..] : ")
 # define MSG_TIME_3 (" us")
 # define CHARS_WHITESPACE ("\n\t\v\f\r ")
-# define INSERT_SORT_THRESHOLD (5)
-# define SEQ_DISPLAY_RANGE (10)
+# define INSERT_SORT_THRESHOLD (10)
+# define SEQ_DISPLAY_RANGE (20)
 
 
 /* Function Macros */
@@ -101,7 +101,8 @@ class  PmergeMe
         void insertionSortList(tSeqList &dataList);
         void insertionSortVector(tSeqVec &dataVector);
         void mergeInsertSortList(tSeqList dataList);
-        void mergeInsertSortVector(tSeqVec dataList);
+        void mergeInsertSortVector(tSeqVec &data);
+        void mergeVector(tSeqVec &dataL, tSeqVec &dataR, tSeqVec &data);
 
     public:
         PmergeMe(char const *fp);

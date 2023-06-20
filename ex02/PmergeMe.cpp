@@ -29,7 +29,22 @@ PmergeMe::PmergeMe(char const *fp)
     showSequence(enSeqList, STATE_BEFORE);
     showSequence(enSeqVector, STATE_BEFORE);
     insertionSortList(seqList);
+    //insertionSortVector(seqVec);
     showSequence(enSeqList, STATE_AFTER);
+    showSequence(enSeqVector, STATE_AFTER);
+
+    tSeqVec rVector(seqVec);
+    tSeqVec rData(24, 0);
+    //insertionSortVector(rVector);
+    mergeVector(seqVec, rVector, rData);
+    mergeInsertSortVector(rData);
+    tSeqVec::iterator it = rData.begin();
+    while ( it != rData.end())
+    {
+        COUT << *it << " ";
+        ++it;
+    }
+    COUT << ENDL;
 #endif
 
 }
@@ -109,11 +124,11 @@ void    PmergeMe::insertionSortList(tSeqList &dataList)
             ++it_L;
         }
 #ifdef _DEBUG_
-        COUT << "Before splice: " << *it_R << ENDL;
+        COUT << "insertionSortList: Before splice: " << *it_R << ENDL;
 #endif
         dataList.splice(it_L, dataList, it_R);
 #ifdef _DEBUG_
-        COUT << "After splice: " << *it_R << ENDL;
+        COUT << "insertionSortList: After splice: " << *it_R << ENDL;
 #endif
         ++idx;
         it_R = dataList.begin();
@@ -123,29 +138,91 @@ void    PmergeMe::insertionSortList(tSeqList &dataList)
 
 void    PmergeMe::insertionSortVector(tSeqVec &dataVector)
 {
-    int unsigned        idx = 1;
     tSeqVec::iterator  it_L = dataVector.begin();
     tSeqVec::iterator  it_R = dataVector.begin();
+    int unsigned       tmpNbr = 0;
     
     ++it_R;
     while (it_R != dataVector.end())
     {
-        it_L = dataVector.begin();
-        while ((it_L != dataVector.end()) && (*it_R > *it_L))
+        it_L = it_R;
+        tmpNbr = *it_R;
+#ifdef _DEBUG_
+        COUT << "insertionSortVector: unsorted idx value -> " << *it_R << ENDL;
+#endif
+        while ((it_L != dataVector.begin()) && (*(it_L - 1) > tmpNbr))
         {
-            ++it_L;
+#ifdef _DEBUG_
+        COUT << "insertionSortVector: *it_L value -> " << *it_L << ENDL;
+        COUT << "insertionSortVector: *it_L - 1 value -> " << *(it_L - 1) << ENDL;
+#endif            
+            *it_L = *(it_L - 1);
+            --it_L;
         }
-#ifdef _DEBUG_
-        COUT << "Before splice: " << *it_R << ENDL;
-#endif
-        dataVector.insert(it_L, *it_R);
-        
-#ifdef _DEBUG_
-        COUT << "After splice: " << *it_R << ENDL;
-#endif
-        ++idx;
-        it_R = dataVector.begin();
-        std::advance(it_R, idx);
+        // check if left interator moved to the left
+        if (it_L != it_R)
+        {
+            *it_L = tmpNbr;
+        }
+        ++it_R;
+    }
+}
+
+
+void PmergeMe::mergeVector(tSeqVec &dataL, tSeqVec &dataR, tSeqVec &data)
+{
+    tSeqVec::iterator  itL=dataL.begin();
+    tSeqVec::iterator  itR=dataR.begin();
+    tSeqVec::iterator  it=data.begin();
+
+    while (itL != dataL.end() && itR != dataR.end())
+    {
+        if (*itL < *itR)
+        {
+            *it = *itL;
+            ++itL;
+        }
+        else
+        {
+            *it = *itR;
+            ++itR;
+        }
+        ++it;
+    }
+    // if right data is at end, move remaining data in left data
+    while (itL != dataL.end())
+    {
+        *(it++) = *(itL++);
     }
 
+    // if left data is at end, move remaining data in right data
+    while (itR != dataR.end())
+    {
+        *(it++) = *(itR++);
+    }
 }
+
+void PmergeMe::mergeInsertSortVector(tSeqVec &data)
+{
+    tSeqVec dataL (data.begin(), (data.begin() + (data.size() / 2)));
+    tSeqVec dataR ((data.begin() + (data.size() / 2)), data.end());
+
+    if (data.size() < 2 ) 
+    {
+        goto end;
+    }
+    else if (data.size() <= INSERT_SORT_THRESHOLD)
+    {
+        insertionSortVector(data);
+        goto end;
+    }
+
+    mergeInsertSortVector(dataL);
+    mergeInsertSortVector(dataR);
+    mergeVector(dataL, dataR, data);
+end:
+    return ;
+}
+
+
+
