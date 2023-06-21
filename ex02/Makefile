@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/06/17 10:59:16 by cudoh            ###   ########.fr        #
+#    Updated: 2023/06/21 23:32:48 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -92,6 +92,9 @@ test:
 	@echo
 	@echo $(COL_G)=== TEST === 3 = $(COL_D)
 	@./$(NAME) "5 1 2 6 8"
+	@echo
+	@echo $(COL_G)=== TEST === 4 = $(COL_D)
+	@./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4 -1"
 	@echo
 
 .PHONY : all fclean clean re push test

@@ -90,6 +90,10 @@ class  PmergeMe
         clock_t     timeEndV;
         std::list<int unsigned>::iterator   it_L;
         std::vector<int unsigned>::iterator it_V;
+        std::stringstream   ss;
+        std::string         tmpExpStr;
+        std::string         tokenStr;
+        std::string::size_type  idx;
         
         PmergeMe(void);
         PmergeMe(PmergeMe const &obj);
@@ -100,9 +104,14 @@ class  PmergeMe
         clock_t computeTime(t_eSeq seqType);
         void insertionSortList(tSeqList &dataList);
         void insertionSortVector(tSeqVec &dataVector);
-        void mergeInsertSortList(tSeqList dataList);
+        void mergeInsertSortList(tSeqList &data);
         void mergeInsertSortVector(tSeqVec &data);
         void mergeVector(tSeqVec &dataL, tSeqVec &dataR, tSeqVec &data);
+        void mergeList(tSeqList &dataL, tSeqList &dataR, tSeqList &data);
+        bool getToken(void);
+        int unsigned convertTokenToInt(void);
+        void sortVector(char const *fp);
+        void sortList(char const *fp);
 
     public:
         PmergeMe(char const *fp);

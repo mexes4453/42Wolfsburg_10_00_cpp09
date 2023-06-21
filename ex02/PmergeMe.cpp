@@ -28,7 +28,7 @@ PmergeMe::PmergeMe(char const *fp)
     showTime(enSeqVector);
     showSequence(enSeqList, STATE_BEFORE);
     showSequence(enSeqVector, STATE_BEFORE);
-    insertionSortList(seqList);
+    //insertionSortList(seqList);
     //insertionSortVector(seqVec);
     showSequence(enSeqList, STATE_AFTER);
     showSequence(enSeqVector, STATE_AFTER);
@@ -38,13 +38,11 @@ PmergeMe::PmergeMe(char const *fp)
     //insertionSortVector(rVector);
     mergeVector(seqVec, rVector, rData);
     mergeInsertSortVector(rData);
-    tSeqVec::iterator it = rData.begin();
-    while ( it != rData.end())
-    {
-        COUT << *it << " ";
-        ++it;
-    }
-    COUT << ENDL;
+    mergeInsertSortVector(rData);
+    mergeInsertSortVector(seqVec);
+    mergeInsertSortList(seqList);
+    sortVector(fp);
+    sortList(fp);
 #endif
 
 }
@@ -202,6 +200,40 @@ void PmergeMe::mergeVector(tSeqVec &dataL, tSeqVec &dataR, tSeqVec &data)
     }
 }
 
+void PmergeMe::mergeList(tSeqList &dataL, tSeqList &dataR, tSeqList &data)
+{
+    tSeqList::iterator  itL=dataL.begin();
+    tSeqList::iterator  itR=dataR.begin();
+    tSeqList::iterator  it=data.begin();
+
+    while (itL != dataL.end() && itR != dataR.end())
+    {
+        if (*itL < *itR)
+        {
+            *it = *itL;
+            ++itL;
+        }
+        else
+        {
+            *it = *itR;
+            ++itR;
+        }
+        ++it;
+    }
+    // if right data is at end, move remaining data in left data
+    while (itL != dataL.end())
+    {
+        *(it++) = *(itL++);
+    }
+
+    // if left data is at end, move remaining data in right data
+    while (itR != dataR.end())
+    {
+        *(it++) = *(itR++);
+    }
+}
+
+
 void PmergeMe::mergeInsertSortVector(tSeqVec &data)
 {
     tSeqVec dataL (data.begin(), (data.begin() + (data.size() / 2)));
@@ -221,8 +253,145 @@ void PmergeMe::mergeInsertSortVector(tSeqVec &data)
     mergeInsertSortVector(dataR);
     mergeVector(dataL, dataR, data);
 end:
+#ifdef _DEBUG_
+    COUT << "mergeInsertSortVector: dataVector-> ";
+    showSequence(enSeqVector, STATE_AFTER);
+#endif
     return ;
 }
 
 
+void PmergeMe::mergeInsertSortList(tSeqList &data)
+{
+    tSeqList::iterator it = data.begin();
+    std::advance(it, (data.size() / 2));
+    tSeqList dataL (data.begin(), it);
+    it = data.begin();
+    std::advance(it, (data.size() / 2));
+    tSeqList dataR (it, data.end());
 
+    if (data.size() < 2 ) 
+    {
+        goto end;
+    }
+    else if (data.size() <= INSERT_SORT_THRESHOLD)
+    {
+        insertionSortList(data);
+        goto end;
+    }
+
+    mergeInsertSortList(dataL);
+    mergeInsertSortList(dataR);
+    mergeList(dataL, dataR, data);
+end:
+#ifdef _DEBUG_
+    COUT << "mergeInsertSortList: dataList-> ";
+    showSequence(enSeqList, STATE_AFTER);
+#endif
+    return ;
+}
+
+bool PmergeMe::getToken(void)
+{
+    bool    result = false;
+
+    if (tmpExpStr.size() == 0)
+        goto end;
+    tokenStr.clear();
+
+    // removing leading whitespaces
+    idx = tmpExpStr.find_first_not_of(CHARS_WHITESPACE);
+    if (idx != std::string::npos)
+    {
+        tmpExpStr = tmpExpStr.substr(idx);
+
+        // removing trailing whitespaces
+        idx = tmpExpStr.find_first_of(CHARS_WHITESPACE);
+        if (idx != std::string::npos)
+        {
+            tokenStr = tmpExpStr.substr(0, idx);
+            tmpExpStr = tmpExpStr.substr(idx + 1);
+            result = true;
+        }
+        else
+        {
+            if (tmpExpStr.size() > 0)
+            {
+                tokenStr = tmpExpStr;
+                result = true;
+                tmpExpStr.clear();
+            }
+        }
+    }
+
+#ifdef _DEBUG_
+        COUT << "getToken : tokenStr -> " << tokenStr << ENDL;
+#endif
+end:
+    return (result);
+}
+
+
+int unsigned  PmergeMe::convertTokenToInt(void)
+{
+    int nbr = 0;
+    std::stringstream   ss(tokenStr);
+
+    if (ss >> nbr)
+    {
+        ss << nbr;
+        if (ss.str().size() != tokenStr.size())
+        {
+            throw std::runtime_error("Error: Invalid input found");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("Error: Invalid input found");
+    }
+
+
+    return (nbr);
+}
+
+void    PmergeMe::sortVector(char const *fp)
+{
+    ss.str( fp );
+    tmpExpStr = ss.str();
+    seqVec.clear();
+#ifdef _DEBUG_
+    COUT << "sortVector: tmpExpStr-> " << tmpExpStr << ENDL;
+#endif
+    try
+    {
+        while (getToken())
+        {
+            seqVec.push_back(convertTokenToInt());
+        }
+        mergeInsertSortVector(seqVec);
+
+    }
+    EXCEPTION_HANDLER();
+
+}
+
+
+void    PmergeMe::sortList(char const *fp)
+{
+    ss.str( fp );
+    tmpExpStr = ss.str();
+    seqList.clear();
+#ifdef _DEBUG_
+    COUT << "sortList: tmpExpStr-> " << tmpExpStr << ENDL;
+#endif
+    try
+    {
+        while (getToken())
+        {
+            seqList.push_back(convertTokenToInt());
+        }
+        mergeInsertSortList(seqList);
+
+    }
+    EXCEPTION_HANDLER();
+}
