@@ -5,6 +5,8 @@ PmergeMe::PmergeMe(){}
 
 PmergeMe::PmergeMe(char const *fp)
 {
+    sortVector(fp);
+    sortList(fp);
 #ifdef _DEBUG_
     COUT << "PmergeMe_Constructor: " << fp << ENDL;
     seqVec.push_back(2);
@@ -41,8 +43,6 @@ PmergeMe::PmergeMe(char const *fp)
     mergeInsertSortVector(rData);
     mergeInsertSortVector(seqVec);
     mergeInsertSortList(seqList);
-    sortVector(fp);
-    sortList(fp);
 #endif
 
 }
@@ -80,6 +80,7 @@ clock_t    PmergeMe::computeTime(t_eSeq seqType)
 #ifdef _DEBUG_
     COUT << "computeTime: seqType-> " << seqType << ENDL;
 #endif
+    COUT << "computeTime: seqType-> " << seqType << ENDL;
     return (45);
 }
 
@@ -334,13 +335,17 @@ end:
 
 int unsigned  PmergeMe::convertTokenToInt(void)
 {
-    int nbr = 0;
+    int unsigned nbr = 0;
     std::stringstream   ss(tokenStr);
+    std::ostringstream  oss;
 
     if (ss >> nbr)
     {
-        ss << nbr;
-        if (ss.str().size() != tokenStr.size())
+        oss << nbr;
+#ifdef _DEBUG_
+        COUT << tokenStr << " : " << oss.str() << " : " << nbr << ENDL;
+#endif
+        if (oss.str().size() != tokenStr.size())
         {
             throw std::runtime_error("Error: Invalid input found");
         }
@@ -368,7 +373,9 @@ void    PmergeMe::sortVector(char const *fp)
         {
             seqVec.push_back(convertTokenToInt());
         }
+        showSequence(enSeqVector, STATE_BEFORE);
         mergeInsertSortVector(seqVec);
+        showSequence(enSeqVector, STATE_AFTER);
 
     }
     EXCEPTION_HANDLER();
@@ -390,7 +397,9 @@ void    PmergeMe::sortList(char const *fp)
         {
             seqList.push_back(convertTokenToInt());
         }
+        showSequence(enSeqList, STATE_BEFORE);
         mergeInsertSortList(seqList);
+        showSequence(enSeqList, STATE_AFTER);
 
     }
     EXCEPTION_HANDLER();

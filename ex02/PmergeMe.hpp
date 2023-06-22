@@ -82,17 +82,17 @@ typedef std::list<int unsigned> tSeqList;
 class  PmergeMe
 {
     private:
-        tSeqVec     seqVec;
-        tSeqList    seqList;
-        clock_t     timeStartL;
-        clock_t     timeStartV;
-        clock_t     timeEndL;
-        clock_t     timeEndV;
-        std::list<int unsigned>::iterator   it_L;
-        std::vector<int unsigned>::iterator it_V;
-        std::stringstream   ss;
-        std::string         tmpExpStr;
-        std::string         tokenStr;
+        tSeqVec                 seqVec;
+        tSeqList                seqList;
+        clock_t                 timeStartL;
+        clock_t                 timeStartV;
+        clock_t                 timeEndL;
+        clock_t                 timeEndV;
+        tSeqList::iterator      it_L;
+        tSeqVec::iterator       it_V;
+        std::stringstream       ss;
+        std::string             tmpExpStr;
+        std::string             tokenStr;
         std::string::size_type  idx;
         
         PmergeMe(void);
