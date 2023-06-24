@@ -42,7 +42,7 @@
         std::cerr << e.what() << '\n'; \
     }\
 
-
+#ifdef _DEBUG_
 #define SHOW_SEQUENCE(seq,iter) \
     {\
         iter = seq.begin(); \
@@ -64,7 +64,8 @@
             }\
         }\
     }\
-
+    
+#endif
 
 typedef enum    eSeq
 {
