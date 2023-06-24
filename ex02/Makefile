@@ -6,7 +6,7 @@
 #    By: cudoh <cudoh@student.42wolfsburg.de>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/30 15:08:09 by cudoh             #+#    #+#              #
-#    Updated: 2023/06/24 03:41:51 by cudoh            ###   ########.fr        #
+#    Updated: 2023/06/24 03:58:16 by cudoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,12 +21,18 @@ NAME = PmergeMe
 CC = c++
 STD_CPP = c++98
 DEBUG = 
+VALGRIND =
+VAL =
 CFLAGS = -Werror -Wall -Wextra -std=$(STD_CPP)
 INCLUDES = -I./
 
 #=== DEBUG ====
 ifeq ($(DEBUG), 1)
 	CFLAGS := $(CFLAGS) -g -D_DEBUG_=1
+endif
+
+ifeq ($(VALGRIND), 1)
+	VAL = valgrind
 endif
 	
 #=== COLORS ====
@@ -85,39 +91,39 @@ endif
 # ========== TEST ====================
 test:
 	@echo $(COL_G)=== TEST === 1 = NO ARGS$(COL_D)
-	@./$(NAME)
+	@$(VAL) ./$(NAME)
 	@echo
 	@echo $(COL_G)=== TEST === 2 = MORE THAN 1 ARG INPUT $(COL_D)
-	@./$(NAME) "5 1 2 6 8" 56
+	@$(VAL) ./$(NAME) "5 1 2 6 8" 56
 	@echo
 	@echo $(COL_G)=== TEST === 3 = VALID INPUT $(COL_D)
-	@./$(NAME) "5 1 2 6 8"
+	@$(VAL) ./$(NAME) "5 1 2 6 8"
 	@echo
 	@echo $(COL_G)=== TEST === 4 = INVALID INPUT = NON DIGIT $(COL_D)
-	@./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4 -k "
+	@$(VAL) ./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4 -k "
 	@echo
 	@echo $(COL_G)=== TEST === 5 = INVALID INPUT = NEGATIVE INTEGER $(COL_D)
-	@./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4 -1 "
+	@$(VAL) ./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4 -1 "
 	@echo
 	@echo $(COL_G)=== TEST === 6 = INVALID INPUT = OVF INTEGER $(COL_D)
-	@./$(NAME) "90 94 42949672956 4 2 5 1  4    452  2  45 2   4 -1 "
+	@$(VAL) ./$(NAME) "90 94 42949672956 4 2 5 1  4    452  2  45 2   4 -1 "
 	@echo
 	@echo $(COL_G)=== TEST === 7 = INVALID INPUT = NON DIGIT $(COL_D)
-	@./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4k3 "
+	@$(VAL) ./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   4k3 "
 	@echo
 	@echo $(COL_G)=== TEST === 8 = INVALID INPUT = CORRUPT INT $(COL_D)
-	@./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   5-3 "
+	@$(VAL) ./$(NAME) "90 94 23 4 2 5 1  4    452  2  45 2   5-3 "
 	@echo
 	@echo $(COL_G)=== TEST === 9 = INVALID INPUT = CORRUPT INT $(COL_D)
-	@./$(NAME) "90 94 -0 23 4 2 5 1  4    452  2  45 2   543 "
+	@$(VAL) ./$(NAME) "90 94 -0 23 4 2 5 1  4    452  2  45 2   543 "
 	@echo
 	@echo $(COL_G)=== TEST === 10 = 42 SUBJECT INPUT $(COL_D)
-	@./$(NAME) 3 5 9 7 4
+	@$(VAL) ./$(NAME) 3 5 9 7 4
 	@echo
 	@echo $(COL_G)=== TEST === 11 = 42 SUBJECT INPUT $(COL_D)
-	@./$(NAME) `shuf -i 1-100000 -n 3000 | tr "\n" " "`
+	@$(VAL) ./$(NAME) `shuf -i 1-100000 -n 3000 | tr "\n" " "`
 	@echo
 	@echo $(COL_G)=== TEST === 12 = 42 SUBJECT INPUT $(COL_D)
-	@./$(NAME) "-1" "2"
+	@$(VAL) ./$(NAME) "-1" "2"
 	@echo
 .PHONY : all fclean clean re push test
