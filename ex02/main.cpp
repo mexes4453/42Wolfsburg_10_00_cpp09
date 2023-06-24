@@ -22,14 +22,10 @@ int main(int argc, char *argv[])
         {
             throw std::runtime_error(ERR_MSG_NoExpression);
         }
-        else if (argc == 2) // check if user provided only one argument
+        else if (argc >= 2) // check if user provided one or more arguments
         {
-            merger = new PmergeMe(argv[1]);
+            merger = new PmergeMe(argc, argv);
             delete merger;
-        }
-        else                // user provided more than one argument
-        {
-            throw std::runtime_error(ERR_MSG_ToManyArgs);
         }
     }
     EXCEPTION_HANDLER();

@@ -3,41 +3,30 @@
 
 PmergeMe::PmergeMe(){}
 
-PmergeMe::PmergeMe(char const *fp)
+PmergeMe::PmergeMe(int argc, char *argv[])
 {
-    sortVector(fp);
-    sortList(fp);
+
+    if (serializeArgsList(argc, argv, seqListRaw))          // serialize args into container
+    {
+        sortList(argc, argv);                               // serialize and sort list container
+        sortVector(argc, argv);                             // serialize and sort vector container
+        if (verifySort())                                   // check that both container sort is ok
+        {
+            showSequenceList(seqListRaw, STATE_BEFORE);     // show sequence before sort ops
+            showSequenceList(seqList, STATE_AFTER);         // show sequence after sort ops
+            showTime(timeStartL, timeEndL);                 // show time required by list
+            showTime(timeStartV, timeEndV);                 // show time required by vector
+        }
+    }
 #ifdef _DEBUG_
     COUT << "PmergeMe_Constructor: " << fp << ENDL;
-    seqVec.push_back(2);
-    seqVec.push_back(3);
-    seqVec.push_back(4);
-    seqVec.push_back(5);
-    seqVec.push_back(7);
-    seqVec.push_back(8);
-    seqVec.push_back(9);
-    seqVec.push_back(1);
-    seqVec.push_back(0);
-    seqVec.push_back(9);
-    seqVec.push_back(8);
-    seqVec.push_back(5);
-    seqList.push_back(8);
-    seqList.push_back(5);
-    seqList.push_back(3);
-    seqList.push_back(9);
-    seqList.push_back(2);
-    showTime(enSeqList);
-    showTime(enSeqVector);
     showSequence(enSeqList, STATE_BEFORE);
     showSequence(enSeqVector, STATE_BEFORE);
-    //insertionSortList(seqList);
-    //insertionSortVector(seqVec);
     showSequence(enSeqList, STATE_AFTER);
     showSequence(enSeqVector, STATE_AFTER);
 
     tSeqVec rVector(seqVec);
     tSeqVec rData(24, 0);
-    //insertionSortVector(rVector);
     mergeVector(seqVec, rVector, rData);
     mergeInsertSortVector(rData);
     mergeInsertSortVector(rData);
@@ -75,35 +64,45 @@ void    PmergeMe::showSequence(t_eSeq seqType, std::string const &seqStateStr)
 }
 
 
-clock_t    PmergeMe::computeTime(t_eSeq seqType)
+double long PmergeMe::computeTimeDiff(t_time &timeStart, t_time &timeEnd, t_eTimeUnit unit)
 {
-#ifdef _DEBUG_
-    COUT << "computeTime: seqType-> " << seqType << ENDL;
-#endif
-    COUT << "computeTime: seqType-> " << seqType << ENDL;
-    return (45);
-}
 
-void    PmergeMe::showTime(t_eSeq seqType)
-{
-    switch (seqType)
+    long long start = timeStart.tv_nsec + (timeStart.tv_sec * TIME_NS);
+    long long end = timeEnd.tv_nsec + (timeEnd.tv_sec * TIME_NS);
+    double long diff = (end - start) / TIME_NS;                     // computed in sec 
+
+    switch (unit)
     {
-        case enSeqList:
+        case enTimeUnit_MS:
         {
-            SHOW_TIME(seqList.size(), computeTime(enSeqList));
+            diff *= TIME_MS;
             break ;
         }
-        case enSeqVector:
+        case enTimeUnit_US:
         {
-            SHOW_TIME(seqVec.size(), computeTime(enSeqVector));
+            diff *= TIME_US;
+            break ;
+        }
+        case enTimeUnit_NS:
+        {
+            diff *= TIME_NS;
             break ;
         }
         default:
         {
-            // do nothing
+            // returns the computed difference in sec
             break ;
         }
     }
+    return (diff);
+}
+
+void    PmergeMe::showTime(t_time &timeStart, t_time &timeEnd)
+{
+    COUT << MSG_TIME_1 << seqListRaw.size()
+         << MSG_TIME_2 << std::setprecision(5) 
+         << computeTimeDiff(timeStart, timeEnd, enTimeUnit_MS)
+         << MSG_TIME_3 << ENDL;
 }
 
 
@@ -347,60 +346,164 @@ int unsigned  PmergeMe::convertTokenToInt(void)
 #endif
         if (oss.str().size() != tokenStr.size())
         {
-            throw std::runtime_error("Error: Invalid input found");
+            throw std::runtime_error(ERR_MSG_InvalidInput);
         }
     }
     else
     {
-        throw std::runtime_error("Error: Invalid input found");
+        throw std::runtime_error(ERR_MSG_InvalidInput);
     }
-
-
     return (nbr);
 }
 
-void    PmergeMe::sortVector(char const *fp)
+void    PmergeMe::sortVector(int argc, char *argv[])
 {
-    ss.str( fp );
-    tmpExpStr = ss.str();
-    seqVec.clear();
-#ifdef _DEBUG_
-    COUT << "sortVector: tmpExpStr-> " << tmpExpStr << ENDL;
-#endif
     try
     {
-        while (getToken())
-        {
-            seqVec.push_back(convertTokenToInt());
-        }
-        showSequence(enSeqVector, STATE_BEFORE);
-        mergeInsertSortVector(seqVec);
-        showSequence(enSeqVector, STATE_AFTER);
-
+        
+        clock_gettime(CLOCK_MONOTONIC, &timeStartV);    // Record start time
+        serializeArgsVector( argc, argv, seqVec );      // Convert args to int & store in container
+        mergeInsertSortVector(seqVec);                  // Perform sort on vector container
+        clock_gettime(CLOCK_MONOTONIC, &timeEndV);      // Record stop time
     }
     EXCEPTION_HANDLER();
 
 }
 
 
-void    PmergeMe::sortList(char const *fp)
+void    PmergeMe::sortList(int argc, char *argv[])
 {
-    ss.str( fp );
-    tmpExpStr = ss.str();
-    seqList.clear();
-#ifdef _DEBUG_
-    COUT << "sortList: tmpExpStr-> " << tmpExpStr << ENDL;
-#endif
     try
     {
-        while (getToken())
-        {
-            seqList.push_back(convertTokenToInt());
-        }
-        showSequence(enSeqList, STATE_BEFORE);
-        mergeInsertSortList(seqList);
-        showSequence(enSeqList, STATE_AFTER);
+        clock_gettime(CLOCK_MONOTONIC, &timeStartL);    // Record start time
+        serializeArgsList( argc, argv, seqList);        // Convert args to int & store in List
+        mergeInsertSortList(seqList);                   // Perform sort on list container
+        clock_gettime(CLOCK_MONOTONIC, &timeEndL);      // Record stop time
 
     }
     EXCEPTION_HANDLER();
+}
+
+ bool    PmergeMe::serializeArgsList(int argc, char *argv[], tSeqList &seq)
+ {
+    int                 idx = 1;
+    bool                result = false;
+    std::ostringstream  oss;
+
+    try
+    {
+        seq.clear();
+        while (idx < argc)
+        {
+            oss.clear();
+            oss.str( argv[idx] );
+            tmpExpStr = oss.str();
+#ifdef _DEBUG_
+            COUT << argv[idx] << ENDL;
+            COUT << tmpExpStr << ENDL;
+            tmpExpStr = argv[idx];
+#endif
+            while (getToken())
+            {
+                seq.push_back(convertTokenToInt());
+            }
+            idx++;
+        }
+        result = true;
+#ifdef _DEBUG_
+        showSequenceList(seq, STATE_BEFORE);
+#endif
+    }
+    EXCEPTION_HANDLER();
+#ifdef _DEBUG_
+    COUT << idx << " : " << argv[idx] << ENDL;
+#endif
+    return (result);
+ }
+
+
+ bool    PmergeMe::serializeArgsVector(int argc, char *argv[], tSeqVec &seq)
+ {
+    int                 idx = 1;
+    bool                result = false;
+    std::ostringstream  oss;
+
+    try
+    {
+        seq.clear();
+        while (idx < argc)
+        {
+            oss.clear();
+            oss.str( argv[idx] );
+            tmpExpStr = oss.str();
+#ifdef _DEBUG_
+            COUT << argv[idx] << ENDL;
+            COUT << tmpExpStr << ENDL;
+            tmpExpStr = argv[idx];
+#endif
+            while (getToken())
+            {
+                seq.push_back(convertTokenToInt());
+            }
+            idx++;
+        }
+        result = true;
+#ifdef _DEBUG_
+        showSequenceList(seq, STATE_BEFORE);
+#endif
+    }
+    EXCEPTION_HANDLER();
+#ifdef _DEBUG_
+    COUT << idx << " : " << argv[idx] << ENDL;
+#endif
+    return (result);
+ }
+
+
+ void PmergeMe::showSequenceList(tSeqList &data, std::string const &seqStateStr)
+ {
+    it_L = data.begin();
+    COUT << seqStateStr;
+
+    if (data.size() > SEQ_DISPLAY_RANGE)
+    {
+        for (int unsigned x = 0; x < SEQ_DISPLAY_RANGE; x++)
+        {
+            COUT << *it_L << " ";
+            ++it_L;
+        }
+        COUT << "[...]";
+    }
+    else
+    {
+        while (it_L != data.end())
+        {
+            COUT << *it_L << " ";
+            ++it_L;
+        }
+    }
+    COUT << ENDL;
+ }
+
+bool            PmergeMe::verifySort(void)
+{
+    bool    result = false;
+
+    it_L = seqList.begin();
+    it_V = seqVec.begin();
+    try
+    {
+        while (it_L != seqList.end())
+        {
+            if (*it_L != *it_V)
+            {
+                throw std::runtime_error(ERR_MSG_IncompleteSort);
+            }
+            ++it_L;
+            ++it_V;
+        }
+        result = true;
+    }
+    EXCEPTION_HANDLER();
+    return (result);
 }
