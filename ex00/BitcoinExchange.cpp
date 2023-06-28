@@ -494,7 +494,7 @@ float   BitcoinExchange::fetchRate(std::string const &dbKeyDate)
     it = db.lower_bound(dbKeyDate);
     if (it != db.end())
     {
-        if (it->first != dbKeyDate)
+        if (it != db.begin() && it->first != dbKeyDate)
         {
             rateFloat = (--it)->second;
         }
